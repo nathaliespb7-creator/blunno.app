@@ -1,26 +1,23 @@
 import { create } from 'zustand';
 
-export type BlunnoState = 'idle' | 'breathing' | 'sos_active' | 'success';
+export type BlunnoState = 'idle' | 'breathing' | 'success' | 'panic';
+export type BreathPhase = 'inhale' | 'hold' | 'exhale' | 'none';
 
 interface BlunnoStore {
-  state: BlunnoState;
-  setState: (newState: BlunnoState) => void;
-  triggerBreathing: () => void;
-  triggerSOS: () => void;
+  currentState: BlunnoState;
+  breathPhase: BreathPhase;
+  setBlunnoState: (state: BlunnoState) => void;
+  setBreathPhase: (phase: BreathPhase) => void;
   triggerSuccess: () => void;
 }
 
 export const useBlunnoStore = create<BlunnoStore>((set) => ({
-  state: 'idle',
-  setState: (newState) => set({ state: newState }),
-  triggerBreathing: () => {
-    set({ state: 'breathing' });
-    setTimeout(() => set({ state: 'idle' }), 4000);
-  },
-  triggerSOS: () => {
-    set({ state: 'sos_active' });
-  },
+  currentState: 'idle',
+  breathPhase: 'none',
+  setBlunnoState: (state) => set({ currentState: state }),
+  setBreathPhase: (phase) => set({ breathPhase: phase }),
   triggerSuccess: () => {
-    set({ state: 'success' });
+    set({ currentState: 'success' });
+    setTimeout(() => set({ currentState: 'idle' }), 2000);
   },
 }));
