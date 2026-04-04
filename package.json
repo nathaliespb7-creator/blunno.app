@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "clsx": "^2.1.0",
     "dexie": "^4.3.0",
     "figma-api": "^2.1.2-beta",
     "framer-motion": "^12.38.0",
@@ -17,6 +18,7 @@
     "next-pwa": "^5.6.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "tailwind-merge": "^2.2.1",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
