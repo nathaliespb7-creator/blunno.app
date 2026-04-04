@@ -92,11 +92,11 @@ module.exports = {
         insetCard: 'inset 0 4px 50px rgba(0, 0, 0, 0.25)',
       },
       backgroundImage: {
-        'blunno-sos': 'var(--gradient-sos)',
-        'blunno-planner': 'var(--gradient-planner)',
-        'blunno-play': 'var(--gradient-play)',
-        'blunno-relax': 'var(--gradient-relax)',
-        'blunno-slot': 'var(--gradient-slot)',
+        'blunno-sos': 'linear-gradient(131deg, #2a1c29 5%, #905e8c 94%)',
+        'blunno-planner': 'linear-gradient(127deg, #364547 4%, #83a9ad 93%)',
+        'blunno-play': 'linear-gradient(131deg, #2c1948 1%, #6a3cae 100%)',
+        'blunno-relax': 'linear-gradient(133deg, #81642f 21%, #e7b453 96%)',
+        'blunno-slot': 'linear-gradient(131deg, #0b4f66 8%, #169fcc 87%)',
       },
       backdropBlur: {
         xs: '2px',
