@@ -1,48 +1,31 @@
 import Link from 'next/link';
 
-const Card = ({
-  title,
-  subtitle,
-  href,
-  accent,
-}: {
-  title: string;
-  subtitle: string;
-  href: string;
-  accent: string;
-}) => {
-  return (
-    <Link
-      href={href}
-      className={[
-        'group relative overflow-hidden rounded-3xl border border-white/15 bg-white/5 backdrop-blur-md p-6',
-        'shadow-lg transition-transform active:scale-[0.99] hover:scale-[1.01]',
-      ].join(' ')}
-    >
-      <div
-        className="absolute -top-20 -right-20 h-56 w-56 rounded-full blur-3xl opacity-70 transition-opacity group-hover:opacity-90"
-        style={{ background: accent }}
-      />
-      <div className="relative">
-        <div className="text-sm text-white/70">{subtitle}</div>
-        <div className="mt-2 text-2xl font-semibold text-white">{title}</div>
-      </div>
-    </Link>
+import { cn } from '@/lib/utils';
+
+const safeTop = { paddingTop: 'max(36px, calc(env(safe-area-inset-top) + 28px))' } as const;
+
+const modeTileClass = (variant: 'sos' | 'planner' | 'play' | 'relax') =>
+  cn(
+    'group relative flex min-h-[80px] w-full max-w-[350px] items-center justify-center overflow-hidden rounded-card border border-white px-6 text-center font-sans text-xl font-extrabold uppercase tracking-figma shadow-screen transition-transform active:scale-[0.99] [box-shadow:inset_0_4px_50px_rgba(0,0,0,0.25)]',
+    variant === 'sos' && 'bg-blunno-sos text-white',
+    variant === 'planner' &&
+      'bg-blunno-planner text-white [box-shadow:inset_0_4px_200px_rgba(0,0,0,0.25)]',
+    variant === 'play' && 'bg-blunno-play text-white',
+    variant === 'relax' && 'bg-blunno-relax text-[#fffbfb]'
   );
-};
 
 export default function ChoosePage() {
   return (
     <main
-      className="min-h-screen bg-gradient-to-b from-[#1a1040] to-[#0d0820] px-6 pb-10 text-white"
-      style={{ paddingTop: 'max(36px, calc(env(safe-area-inset-top) + 28px))' }}
+      className="min-h-screen bg-blunno-bg px-5 pb-12 text-blunno-foreground"
+      style={safeTop}
     >
-      <div className="mx-auto w-full max-w-md">
-        <div className="flex justify-end">
+      <div className="mx-auto flex w-full max-w-md flex-col items-center">
+        <div className="flex w-full justify-end">
           <Link
             href="/"
             aria-label="Exit to welcome screen"
-            className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/80 transition-colors hover:border-white/20 hover:text-white"
+            className="rounded-xl border border-white/20 bg-white/5 p-2 text-white/90 transition-colors hover:border-white/35 hover:bg-white/10"
           >
             <svg
               aria-hidden="true"
@@ -61,13 +44,28 @@ export default function ChoosePage() {
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-4">
-          <Card title="SOS" subtitle="When you need help right now" href="/sos" accent="rgba(255, 120, 120, 0.55)" />
-          <Card title="Planner" subtitle="Daily plan and focused time" href="/planner" accent="rgba(130, 180, 255, 0.55)" />
-          <Card title="Games" subtitle="Switch gears and exhale" href="/play" accent="rgba(189, 178, 255, 0.55)" />
-        </div>
+        <h1 className="mt-10 text-center font-sans text-[22px] font-extrabold uppercase leading-[3.18] tracking-figma text-white [text-shadow:var(--shadow-text-title)]">
+          CHOOSE YOUR MODE
+        </h1>
+
+        <nav
+          className="mt-14 flex w-full flex-col items-center gap-11"
+          aria-label="App modes"
+        >
+          <Link href="/sos" className={modeTileClass('sos')}>
+            SOS
+          </Link>
+          <Link href="/planner" className={modeTileClass('planner')}>
+            PLANNER
+          </Link>
+          <Link href="/play" className={modeTileClass('play')}>
+            PLAY
+          </Link>
+          <Link href="/relax" className={modeTileClass('relax')}>
+            RELAX
+          </Link>
+        </nav>
       </div>
     </main>
   );
 }
-

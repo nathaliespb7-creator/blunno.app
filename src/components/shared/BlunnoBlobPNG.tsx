@@ -4,6 +4,7 @@ import { motion, type Variants } from 'framer-motion';
 import { useEffect } from 'react';
 import { useBlunnoStore, type BlunnoState } from '@/store/blunnoStore';
 import { audioService } from '@/services/audioService';
+import { BLUNNO_MASCOT_PNG } from '@/lib/assets';
 
 export const BlunnoBlobPNG = () => {
   const { currentState } = useBlunnoStore();
@@ -58,7 +59,7 @@ export const BlunnoBlobPNG = () => {
       />
       {/* Сам Blob */}
       <motion.img
-        src="/blunno.png"
+        src={BLUNNO_MASCOT_PNG}
         alt="Blunno"
         width={192}
         height={192}

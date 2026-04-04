@@ -2,17 +2,16 @@ import Link from 'next/link';
 
 import { SOSModule } from '@/components/features/sos/SOSModule';
 
+const safeTop = { paddingTop: 'max(36px, calc(env(safe-area-inset-top) + 28px))' } as const;
+
 export default function SosPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#1a1040] to-[#0d0820] text-white overflow-x-hidden">
-      <div
-        className="mx-auto flex w-full max-w-md justify-end px-4 pb-3"
-        style={{ paddingTop: 'max(36px, calc(env(safe-area-inset-top) + 28px))' }}
-      >
+    <main className="min-h-screen overflow-x-hidden bg-blunno-bg text-blunno-foreground">
+      <div className="mx-auto flex w-full max-w-md justify-end px-4 pb-3" style={safeTop}>
         <Link
           href="/"
           aria-label="Exit to welcome screen"
-          className="rounded-xl border border-white/10 bg-white/5 p-2 text-white/80 transition-colors hover:border-white/20 hover:text-white"
+          className="rounded-xl border border-white/20 bg-white/5 p-2 text-white/90 transition-colors hover:border-white/35 hover:bg-white/10"
         >
           <svg
             aria-hidden="true"
@@ -30,8 +29,10 @@ export default function SosPage() {
           </svg>
         </Link>
       </div>
+      <p className="mx-auto max-w-md px-5 pb-2 font-sans text-[22px] font-extrabold uppercase tracking-figma [text-shadow:var(--shadow-text-title)]">
+        BREATHE WITH BLUNNO
+      </p>
       <SOSModule />
     </main>
   );
 }
-

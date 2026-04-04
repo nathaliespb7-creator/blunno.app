@@ -81,11 +81,11 @@ export default function WelcomePage() {
         {/* Background glow */}
         <motion.div
           animate={{
-            opacity: isHovered ? 0.8 : 0.4,
-            scale: isHovered ? 1.2 : 1,
+            opacity: isHovered ? 0.75 : 0.38,
+            scale: isHovered ? 1.15 : 1,
           }}
           transition={{ duration: 0.5 }}
-          className="absolute inset-0 bg-purple-500/30 blur-[80px] rounded-full"
+          className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_40%,rgba(110,218,228,0.35),rgba(139,92,246,0.2),transparent_70%)] blur-[72px]"
         />
 
         <div className="relative z-20">
@@ -101,20 +101,20 @@ export default function WelcomePage() {
           transition={{ duration: 0.6 }}
           className="text-center px-3 w-full max-w-[340px]"
         >
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white/90 drop-shadow-[0_0_12px_rgba(255,255,255,0.3)] break-words">
+          <h2 className="break-words font-sans text-[clamp(1.5rem,5vw,2.375rem)] font-extrabold leading-tight tracking-[0.01em] text-white/92 [text-shadow:0_4px_4px_rgba(0,0,0,0.25)]">
             No stress, no mess
           </h2>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-2 text-sm uppercase tracking-[0.16em] sm:tracking-[0.3em] font-light text-purple-200/40"
+            className="mt-3 font-sans text-[22px] font-extrabold uppercase leading-[3.18] tracking-figma"
           >
-            just{' '}
-            <span className="text-cyan-300/70 font-semibold drop-shadow-[0_0_8px_rgba(103,232,249,0.4)]">
-              Blunno
-            </span>{' '}
-            best
+            <span className="text-white/38 [text-shadow:0_4px_4px_rgba(0,0,0,0.25)]">JUST </span>
+            <span className="text-blunno-cyan drop-shadow-[0_0_12px_rgba(110,218,228,0.45)] [text-shadow:0_4px_0_rgba(0,0,0,0.25)]">
+              BLUNNO
+            </span>
+            <span className="text-white/38 [text-shadow:0_4px_4px_rgba(0,0,0,0.25)]"> BEST</span>
           </motion.p>
         </motion.div>
       </div>
