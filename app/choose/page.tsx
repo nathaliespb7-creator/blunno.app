@@ -55,12 +55,12 @@ export default function ChoosePage(): ReactElement {
   return (
     <main
       className={cn(
-        'flex min-h-dvh max-h-dvh flex-col overflow-x-hidden overflow-y-hidden bg-blunno-bg text-blunno-foreground',
+        'flex min-h-screen flex-col overflow-x-hidden bg-blunno-bg text-blunno-foreground',
         'px-4 py-4 sm:px-5 sm:py-6',
         'pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]'
       )}
     >
-      <div className="mx-auto flex min-h-0 min-w-0 w-full max-w-4xl flex-1 flex-col items-center justify-center">
+      <div className="mx-auto flex min-h-0 min-w-0 w-full max-w-4xl flex-1 flex-col items-center justify-between">
         <div className="flex w-full shrink-0 justify-end">
           <Link
             href="/"
@@ -94,7 +94,7 @@ export default function ChoosePage(): ReactElement {
         </h1>
 
         <nav
-          className="flex min-h-0 w-full flex-1 flex-col items-stretch justify-center py-2"
+          className="flex min-h-0 w-full flex-1 flex-col items-stretch justify-center py-2 pb-4"
           aria-label="Choose your mood"
         >
           <div
