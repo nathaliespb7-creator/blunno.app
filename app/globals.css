@@ -91,6 +91,14 @@
   --leading-title: 3.18181818;
   --tracking-wide: 0.01em;
   --tracking-widest: 0.2em;
+
+  /* Welcome — Figma Welcome (типографика + контраст на тёмном фоне) */
+  --welcome-bg: #0d081b;
+  --welcome-brand-teal: #2dd4bf;
+  --welcome-hero-size-min: 1.25rem;
+  --welcome-hero-size-max: 1.5rem;
+  --welcome-tag-size-min: 1.75rem;
+  --welcome-tag-size-max: 2rem;
 }
 
 @theme inline {
@@ -107,7 +115,7 @@
   --color-blunno-coral: var(--color-coral);
   --color-blunno-cyan: var(--color-cyan-accent);
 
-  --font-sans: var(--font-sarabun), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-comfortaa), var(--font-sarabun), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-roboto), ui-sans-serif, system-ui, sans-serif;
   --font-ui: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 

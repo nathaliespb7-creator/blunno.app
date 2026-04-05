@@ -11,6 +11,9 @@ module.exports = {
       colors: {
         blunno: {
           bg: '#0d0524',
+          /** Welcome frame / контраст с белым и бирюзой */
+          welcome: '#0d081b',
+          brandTeal: '#2dd4bf',
           foreground: '#ffffff',
           muted: '#c7c7c7',
           blue: '#456ce8',
@@ -63,7 +66,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-sarabun)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-comfortaa)', 'var(--font-sarabun)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         body: ['var(--font-roboto)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         ui: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
