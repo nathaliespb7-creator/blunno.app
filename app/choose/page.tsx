@@ -42,10 +42,12 @@ const MOOD_TILES: readonly MoodTile[] = [
   },
 ] as const;
 
+/** На обычных экранах без прокрутки; на очень низких вьюпорт — компактнее, при необходимости лёгкий скролл у main */
 const tileClass = cn(
   'group relative flex w-full max-w-sm items-center justify-center overflow-hidden rounded-2xl border border-white',
   'mx-auto px-4 py-4 text-center font-sans text-base font-extrabold uppercase tracking-wide text-white shadow-lg',
   'min-h-[64px] sm:min-h-[88px] md:min-h-[120px] md:max-w-md',
+  '[@media(max-height:620px)]:min-h-[52px] [@media(max-height:620px)]:py-3 [@media(max-height:620px)]:text-sm',
   'transition-transform duration-200 [box-shadow:inset_0_4px_50px_rgba(0,0,0,0.2)] will-change-transform',
   'hover:scale-105 hover:brightness-105 active:scale-[0.98]',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50'
@@ -55,12 +57,18 @@ export default function ChoosePage(): ReactElement {
   return (
     <main
       className={cn(
-        'flex min-h-screen flex-col overflow-x-hidden bg-blunno-bg text-blunno-foreground',
+        'flex min-h-dvh max-h-dvh flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain bg-blunno-bg text-blunno-foreground',
         'px-4 py-4 sm:px-5 sm:py-6',
+        '[@media(max-height:620px)]:py-3',
         'pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]'
       )}
     >
-      <div className="mx-auto flex min-h-0 min-w-0 w-full max-w-4xl flex-1 flex-col items-center justify-between">
+      <div
+        className={cn(
+          'mx-auto flex min-h-0 min-w-0 w-full max-w-4xl flex-1 flex-col items-center justify-center gap-3',
+          '[@media(max-height:620px)]:justify-start [@media(max-height:620px)]:gap-2'
+        )}
+      >
         <div className="flex w-full shrink-0 justify-end">
           <Link
             href="/"
@@ -87,19 +95,21 @@ export default function ChoosePage(): ReactElement {
         <h1
           className={cn(
             'w-full shrink-0 py-2 text-center font-sans text-lg font-extrabold uppercase leading-tight tracking-figma text-white [text-shadow:var(--shadow-text-title)]',
-            'sm:text-xl md:text-[22px]'
+            'sm:text-xl md:text-[22px]',
+            '[@media(max-height:620px)]:py-1 [@media(max-height:620px)]:text-base'
           )}
         >
           CHOOSE YOUR MOOD
         </h1>
 
         <nav
-          className="flex min-h-0 w-full flex-1 flex-col items-stretch justify-center py-2 pb-4"
+          className="flex min-h-0 w-full flex-1 flex-col items-stretch justify-center py-1 [@media(max-height:620px)]:py-0"
           aria-label="Choose your mood"
         >
           <div
             className={cn(
               'grid min-h-0 w-full grid-cols-1 gap-3 p-0.5 sm:gap-4',
+              '[@media(max-height:620px)]:gap-2',
               'md:grid-cols-2 md:gap-4 lg:gap-5'
             )}
           >
