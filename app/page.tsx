@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation';
 import { BlunnoBlob } from '@/components/shared/BlunnoBlob';
 import { cn } from '@/lib/utils';
 
-// Lazy-init Howler on first interaction (lighter first paint on slow devices)
-let bubblePop: Howl | null = null;
+// Lazy-init Howler on first interaction (lighter first paint on slow devices).
+// Transition “pop” is global (NavigationTransitionSound + /lib/navigationSound).
 let hoverSound: Howl | null = null;
 let soundsReady: Promise<void> | null = null;
 
@@ -19,14 +19,6 @@ async function ensureSounds(): Promise<void> {
   soundsReady = (async () => {
     try {
       const { Howl } = await import('howler');
-      bubblePop = new Howl({
-        src: ['/sounds/pop.mp3'],
-        volume: 0.4,
-        preload: false,
-        onloaderror: (id, error) => {
-          console.warn('Failed to load pop sound:', error);
-        },
-      });
       hoverSound = new Howl({
         src: ['/sounds/hover-soft.mp3'],
         volume: 0.15,
@@ -53,9 +45,6 @@ export default function WelcomePage(): ReactElement {
 
   const handleBlobClick = () => {
     router.push('/choose');
-    void ensureSounds().then(() => {
-      bubblePop?.play();
-    });
   };
 
   return (
