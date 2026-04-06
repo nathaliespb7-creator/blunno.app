@@ -81,24 +81,6 @@ function buildRingFilters(blurPx: number, glowHex: string): { progress: string; 
   return { progress, wrapper };
 }
 
-let dingSingleton: Howl | null = null;
-
-function getDing(): Howl {
-  if (typeof window === 'undefined') {
-    return null as unknown as Howl;
-  }
-  if (!dingSingleton) {
-    dingSingleton = new Howl({
-      src: ['/sounds/ding.mp3'],
-      volume: 0.4,
-      onloaderror: () => {
-        console.log('[SOS] ding.mp3 unavailable, skipping sound');
-      },
-    });
-  }
-  return dingSingleton;
-}
-
 let exhaleSingleton: Howl | null = null;
 
 function getExhale(): Howl {
@@ -166,11 +148,6 @@ export default function SosPage(): ReactElement {
 
   const applyCycleCompletion = useCallback((newCompleted: number) => {
     setFeedback(cycleFeedbackMessage(newCompleted));
-    try {
-      getDing().play();
-    } catch {
-      console.log('[SOS] could not play ding');
-    }
     try {
       getExhale().play();
     } catch {
@@ -438,15 +415,17 @@ export default function SosPage(): ReactElement {
               Cycle {exerciseStatus === 'completed' ? TOTAL_CYCLES : currentCycleLabel} of {TOTAL_CYCLES}
             </p>
 
-            {feedback ? (
-              <p className="max-w-sm text-sm font-semibold leading-snug text-white/90 sm:text-base" role="status">
-                {feedback}
-              </p>
-            ) : (
-              <p className="max-w-sm text-xs font-medium leading-snug text-white/65 sm:text-sm">
-                Trace the ring with your finger or mouse until it fills.
-              </p>
-            )}
+            <div aria-live="polite" aria-atomic="true">
+              {feedback ? (
+                <p className="max-w-sm text-sm font-semibold leading-snug text-white/90 sm:text-base">
+                  {feedback}
+                </p>
+              ) : (
+                <p className="max-w-sm text-xs font-medium leading-snug text-white/65 sm:text-sm">
+                  Trace the ring with your finger or mouse until it fills.
+                </p>
+              )}
+            </div>
           </div>
 
           {exerciseStatus === 'completed' && (
