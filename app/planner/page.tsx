@@ -177,7 +177,7 @@ export default function PlannerPage(): ReactElement {
           {currentTasks.map((task, idx) => (
             <div
               key={task.id}
-              className={`flex min-w-0 items-center gap-3 rounded-2xl p-3 transition ${
+              className={`flex min-w-0 items-center justify-between gap-3 rounded-2xl p-3 transition ${
                 task.completed
                   ? 'bg-gradient-to-r from-[#2A1C29] to-[#905E8C]'
                   : 'bg-[#1a1a2e]'
@@ -196,7 +196,7 @@ export default function PlannerPage(): ReactElement {
               ) : (
                 <span
                   onClick={() => startEdit(idx, task.text)}
-                  className={`min-w-0 flex-1 cursor-pointer text-base ${task.completed ? 'text-white/60 line-through' : 'text-white'}`}
+                  className={`min-w-0 flex-1 cursor-pointer text-base ${task.completed ? 'text-white opacity-60 line-through' : 'text-white'}`}
                 >
                   {task.text}
                 </span>
