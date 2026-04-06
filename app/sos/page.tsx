@@ -99,6 +99,24 @@ function getDing(): Howl {
   return dingSingleton;
 }
 
+let exhaleSingleton: Howl | null = null;
+
+function getExhale(): Howl {
+  if (typeof window === 'undefined') {
+    return null as unknown as Howl;
+  }
+  if (!exhaleSingleton) {
+    exhaleSingleton = new Howl({
+      src: ['/sounds/exhale.mp3'],
+      volume: 0.4,
+      onloaderror: () => {
+        console.log('[SOS] exhale.mp3 unavailable, skipping sound');
+      },
+    });
+  }
+  return exhaleSingleton;
+}
+
 export default function SosPage(): ReactElement {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const lastAngleRef = useRef<number | null>(null);
@@ -154,14 +172,19 @@ export default function SosPage(): ReactElement {
     } catch {
       console.log('[SOS] could not play ding');
     }
-    setBlunnoScale(1.15);
+    try {
+      getExhale().play();
+    } catch {
+      console.log('[SOS] could not play exhale');
+    }
+    setBlunnoScale(1.3);
     window.setTimeout(() => {
       if (newCompleted >= TOTAL_CYCLES) {
         setBlunnoScale(1);
       } else {
-        setBlunnoScale(isTrackingRef.current ? 1.08 : 1);
+        setBlunnoScale(isTrackingRef.current ? 1.2 : 1);
       }
-    }, 200);
+    }, 300);
     if (newCompleted >= TOTAL_CYCLES) {
       setExerciseStatus('completed');
       cycleProgressRef.current = 1;
@@ -201,7 +224,7 @@ export default function SosPage(): ReactElement {
       const deltaP = deltaRad / TWO_PI;
       if (!completedAny && completedCyclesRef.current < TOTAL_CYCLES) {
         if (deltaP > 0) {
-          setBlunnoScale((s) => Math.min(1.08, s + 0.02));
+          setBlunnoScale((s) => Math.min(1.2, s + 0.02));
         } else if (deltaP < 0) {
           setBlunnoScale((s) => Math.max(1, s - 0.02));
         }
