@@ -35,7 +35,7 @@ const DEFAULT_TUNING: VisualTuning = {
   blunnoSizePx: 120,
   blunnoOffsetXPx: -5,
   blunnoOffsetYPx: -13,
-  /** Vertical rhythm between header / ring / text (tighter ring → copy) */
+  /** Gap between ring, cycle/hint, and buttons (inner column only; header uses Choose `gap-3`) */
   sectionGapPx: 16,
 };
 
@@ -255,12 +255,12 @@ export default function SosPage(): ReactElement {
     boxShadow: ringFilters.wrapper,
   } as const;
 
-  const sectionStyle = { gap: tuning.sectionGapPx } as const;
+  const ringTextColumnStyle = { gap: tuning.sectionGapPx } as const;
 
   return (
     <main
       className={cn(
-        'flex min-h-dvh max-h-dvh flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain',
+        'flex min-h-screen min-h-dvh max-h-dvh flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain',
         'bg-blunno-bg text-blunno-foreground',
         'px-4 py-4 sm:px-5 sm:py-6',
         '[@media(max-height:620px)]:py-3',
@@ -269,10 +269,9 @@ export default function SosPage(): ReactElement {
     >
       <div
         className={cn(
-          'mx-auto flex min-h-0 min-w-0 w-full max-w-4xl flex-1 flex-col items-center justify-center',
+          'mx-auto flex min-h-0 min-w-0 w-full max-w-4xl flex-1 flex-col items-center justify-center gap-3',
           '[@media(max-height:620px)]:justify-start [@media(max-height:620px)]:gap-2'
         )}
-        style={sectionStyle}
       >
         <div className="flex w-full shrink-0 justify-end">
           <Link
@@ -310,10 +309,15 @@ export default function SosPage(): ReactElement {
 
         <div
           className={cn(
-            'flex w-full shrink-0 flex-col items-center justify-center py-0',
+            'flex min-h-0 w-full flex-1 flex-col items-stretch justify-center py-1 [@media(max-height:620px)]:py-0',
             'touch-none select-none'
           )}
+          aria-label="SOS breathing exercise"
         >
+          <div
+            className="mx-auto flex w-full max-w-sm flex-col items-center"
+            style={ringTextColumnStyle}
+          >
           <div
             className={cn(
               'relative mx-auto flex shrink-0 items-center justify-center overflow-visible rounded-full aspect-square',
@@ -402,41 +406,42 @@ export default function SosPage(): ReactElement {
             </div>
           </div>
           </div>
-        </div>
 
-        <div className="flex w-full max-w-sm shrink-0 flex-col items-center gap-1 px-1 text-center">
-          <p className="font-sans text-sm font-semibold tracking-wide text-white/95 sm:text-base">
-            Cycle {exerciseStatus === 'completed' ? TOTAL_CYCLES : currentCycleLabel} of {TOTAL_CYCLES}
-          </p>
-
-          {feedback ? (
-            <p className="max-w-sm text-sm font-semibold leading-snug text-white/90 sm:text-base" role="status">
-              {feedback}
+          <div className="flex w-full shrink-0 flex-col items-center gap-1 px-1 text-center">
+            <p className="font-sans text-sm font-semibold tracking-wide text-white/95 sm:text-base">
+              Cycle {exerciseStatus === 'completed' ? TOTAL_CYCLES : currentCycleLabel} of {TOTAL_CYCLES}
             </p>
-          ) : (
-            <p className="max-w-sm text-xs font-medium leading-snug text-white/65 sm:text-sm">
-              Trace the ring with your finger or mouse until it fills.
-            </p>
-          )}
-        </div>
 
-        {exerciseStatus === 'completed' && (
-          <div className="flex w-full max-w-sm shrink-0 flex-col gap-2 sm:flex-row sm:gap-3">
-            <Link
-              href="/choose"
-              className="inline-flex flex-1 items-center justify-center rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-center font-sans text-sm font-extrabold uppercase tracking-wide text-white transition-colors hover:bg-white/18 sm:px-5 sm:py-3.5 sm:text-base"
-            >
-              COMPLETE
-            </Link>
-            <button
-              type="button"
-              className="inline-flex flex-1 items-center justify-center rounded-2xl border border-[#00FFD1]/45 bg-[#00FFD1]/12 px-4 py-3 font-sans text-sm font-extrabold uppercase tracking-wide text-[#00FFD1] transition-colors hover:bg-[#00FFD1]/22 sm:px-5 sm:py-3.5 sm:text-base"
-              onClick={resetExercise}
-            >
-              STAY
-            </button>
+            {feedback ? (
+              <p className="max-w-sm text-sm font-semibold leading-snug text-white/90 sm:text-base" role="status">
+                {feedback}
+              </p>
+            ) : (
+              <p className="max-w-sm text-xs font-medium leading-snug text-white/65 sm:text-sm">
+                Trace the ring with your finger or mouse until it fills.
+              </p>
+            )}
           </div>
-        )}
+
+          {exerciseStatus === 'completed' && (
+            <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row sm:gap-3">
+              <Link
+                href="/choose"
+                className="inline-flex flex-1 items-center justify-center rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-center font-sans text-sm font-extrabold uppercase tracking-wide text-white transition-colors hover:bg-white/18 sm:px-5 sm:py-3.5 sm:text-base"
+              >
+                COMPLETE
+              </Link>
+              <button
+                type="button"
+                className="inline-flex flex-1 items-center justify-center rounded-2xl border border-[#00FFD1]/45 bg-[#00FFD1]/12 px-4 py-3 font-sans text-sm font-extrabold uppercase tracking-wide text-[#00FFD1] transition-colors hover:bg-[#00FFD1]/22 sm:px-5 sm:py-3.5 sm:text-base"
+                onClick={resetExercise}
+              >
+                STAY
+              </button>
+            </div>
+          )}
+          </div>
+        </div>
       </div>
     </main>
   );
