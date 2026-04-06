@@ -12,17 +12,33 @@ const TOTAL_CYCLES = 3;
 const VIEW_SIZE = 320;
 const CX = VIEW_SIZE / 2;
 const CY = VIEW_SIZE / 2;
-const R = 128;
-const STROKE_PX = 12;        // ← увеличьте это число, если хотите толще кольцо (16 или 20)
-const CIRC = 2 * Math.PI * R;
 const TWO_PI = Math.PI * 2;
 
-const RING_PROGRESS_FILTER =
-  'drop-shadow(0 0 8px #00FFD1) drop-shadow(0 0 20px rgba(0,255,209,0.5)) drop-shadow(0 0 10px rgba(255,0,245,0.3))';
-const RING_WRAPPER_BOX_SHADOW =
-  '0 0 20px rgba(0,255,209,0.5), 0 0 10px rgba(255,0,245,0.3)';
-
 type ExerciseStatus = 'active' | 'completed';
+
+type VisualTuning = {
+  ringDiameterPx: number;
+  strokeWidthPx: number;
+  blurPx: number;
+  glowColor: string;
+  blunnoSizePx: number;
+  blunnoOffsetXPx: number;
+  blunnoOffsetYPx: number;
+  sectionGapPx: number;
+};
+
+const DEFAULT_TUNING: VisualTuning = {
+  ringDiameterPx: 252,
+  strokeWidthPx: 28,
+  blurPx: 21,
+  glowColor: '#00FFD1',
+  blunnoSizePx: 120,
+  blunnoOffsetXPx: -5,
+  blunnoOffsetYPx: -13,
+  sectionGapPx: 32,
+};
+
+const tuning = DEFAULT_TUNING;
 
 function cycleFeedbackMessage(completedCycle: number): string {
   if (completedCycle === 1) return 'Nice! Cycle 1 of 3';
@@ -42,6 +58,26 @@ function getAngleFromClient(
   const x = ((clientX - rect.left) / rect.width) * width;
   const y = ((clientY - rect.top) / rect.height) * height;
   return Math.atan2(x - cx, -(y - cy));
+}
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function buildRingFilters(blurPx: number, glowHex: string): { progress: string; wrapper: string } {
+  const rgb = hexToRgb(glowHex);
+  const fallback = '0, 255, 209';
+  const rgba = rgb ? `${rgb.r}, ${rgb.g}, ${rgb.b}` : fallback;
+  const progress = [
+    `drop-shadow(0 0 ${blurPx}px ${glowHex})`,
+    `drop-shadow(0 0 ${blurPx * 2.5}px rgba(${rgba}, 0.45))`,
+    'drop-shadow(0 0 10px rgba(255,0,245,0.35))',
+  ].join(' ');
+  const wrapper = `0 0 ${blurPx * 2.5}px rgba(${rgba}, 0.5), 0 0 12px rgba(255,0,245,0.3)`;
+  return { progress, wrapper };
 }
 
 let dingSingleton: Howl | null = null;
@@ -72,6 +108,21 @@ export default function SosPage(): ReactElement {
   const [exerciseStatus, setExerciseStatus] = useState<ExerciseStatus>('active');
   const [feedback, setFeedback] = useState<string>('');
   const isTrackingRef = useRef(false);
+
+  const { ringRadius, strokeView, circ } = useMemo(() => {
+    const d = Math.max(120, Math.min(tuning.ringDiameterPx, 480));
+    const swPx = Math.max(2, Math.min(tuning.strokeWidthPx, 40));
+    const sw = (swPx * VIEW_SIZE) / d;
+    const rr = VIEW_SIZE / 2 - sw / 2;
+    const r = Math.max(8, rr);
+    const c = 2 * Math.PI * r;
+    return { ringRadius: r, strokeView: sw, circ: c };
+  }, [tuning.ringDiameterPx, tuning.strokeWidthPx]);
+
+  const ringFilters = useMemo(
+    () => buildRingFilters(tuning.blurPx, tuning.glowColor),
+    [tuning.blurPx, tuning.glowColor]
+  );
 
   useEffect(() => {
     document.title = 'SOS - Breathe with Blunno';
@@ -189,23 +240,35 @@ export default function SosPage(): ReactElement {
   };
 
   const dashArray = useMemo(() => {
-    const drawn = CIRC * cycleProgress;
-    return `${drawn} ${CIRC}`;
-  }, [cycleProgress]);
+    const drawn = circ * cycleProgress;
+    return `${drawn} ${circ}`;
+  }, [circ, cycleProgress]);
 
   const currentCycleLabel = Math.min(completedCycles + 1, TOTAL_CYCLES);
+
+  const ringSizeStyle = {
+    width: tuning.ringDiameterPx,
+    height: tuning.ringDiameterPx,
+    maxWidth: 'min(90vw, 100%)',
+    maxHeight: 'min(90vw, 55vh)',
+    boxShadow: ringFilters.wrapper,
+  } as const;
+
+  const sectionStyle = { gap: tuning.sectionGapPx } as const;
 
   return (
     <main
       className={cn(
-        'flex h-screen flex-col overflow-hidden',
+        'flex h-screen min-h-0 flex-col overflow-hidden',
         'bg-[#0B0B1A] text-white',
         'px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))]',
         'pt-[max(0.5rem,env(safe-area-inset-top))]'
       )}
     >
-      <div className="mx-auto flex h-full w-full max-w-md flex-1 flex-col items-center justify-center gap-2 sm:gap-3">
-        {/* Header with title and exit button */}
+      <div
+        className="mx-auto flex h-full w-full max-w-md flex-1 flex-col items-center justify-center min-h-0"
+        style={sectionStyle}
+      >
         <div className="relative flex w-full shrink-0 items-center justify-center px-9 sm:px-10">
           <h1 className="text-center font-sans text-sm font-extrabold uppercase leading-tight tracking-[0.1em] text-white sm:text-base">
             <span className="[text-shadow:0_2px_12px_rgba(0,0,0,0.35)]">BREATHE WITH </span>
@@ -232,20 +295,19 @@ export default function SosPage(): ReactElement {
           </Link>
         </div>
 
-        {/* Glowing ring container */}
         <div
           className={cn(
-            'relative mx-auto flex aspect-square w-[min(90vw,360px)] max-h-[min(90vw,50vh)] max-w-[90vw] shrink-0 touch-none select-none items-center justify-center overflow-visible rounded-full sm:max-h-[min(90vw,420px)] sm:w-[min(90vw,380px)]',
+            'relative mx-auto flex shrink-0 touch-none select-none items-center justify-center overflow-visible rounded-full aspect-square',
             exerciseStatus === 'completed' && 'pointer-events-none opacity-[0.98]'
           )}
-          style={{ boxShadow: RING_WRAPPER_BOX_SHADOW }}
+          style={ringSizeStyle}
         >
-          {/* SVG Ring */}
           <svg
             ref={svgRef}
             role="img"
             aria-label="Trace around the ring to fill the progress"
             viewBox={`0 0 ${VIEW_SIZE} ${VIEW_SIZE}`}
+            preserveAspectRatio="xMidYMid meet"
             className={cn(
               'absolute inset-0 z-10 size-full touch-none overflow-visible',
               exerciseStatus === 'active' && 'cursor-pointer'
@@ -276,48 +338,52 @@ export default function SosPage(): ReactElement {
             </defs>
 
             <g transform={`rotate(-90 ${CX} ${CY})`}>
-              {/* Background ring */}
               <circle
                 cx={CX}
                 cy={CY}
-                r={R}
+                r={ringRadius}
                 fill="none"
                 stroke="rgba(255,255,255,0.14)"
-                strokeWidth={STROKE_PX}
+                strokeWidth={strokeView}
                 strokeLinecap="round"
               />
-              {/* Progress ring */}
               <circle
                 cx={CX}
                 cy={CY}
-                r={R}
+                r={ringRadius}
                 fill="none"
                 stroke="url(#sosRingGradient)"
-                strokeWidth={STROKE_PX}
+                strokeWidth={strokeView}
                 strokeLinecap="round"
                 strokeDasharray={dashArray}
-                style={{ filter: RING_PROGRESS_FILTER }}
+                style={{ filter: ringFilters.progress }}
               />
             </g>
           </svg>
 
-          {/* Blunno mascot - perfectly centered */}
           <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
-            <motion.img
-              src={BLUNNO_MASCOT_PNG}
-              alt="Blunno character"
-              className="h-auto w-auto max-h-[60%] max-w-[60%] object-contain object-center"
-              animate={{ scale: [1, 1.08, 1] }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: 'easeInOut',
+            <div
+              style={{
+                transform: `translate(${tuning.blunnoOffsetXPx}px, ${tuning.blunnoOffsetYPx}px)`,
               }}
-            />
+            >
+              <motion.div
+                className="flex size-full items-center justify-center"
+                style={{ width: tuning.blunnoSizePx, height: tuning.blunnoSizePx }}
+                animate={{ scale: [1, 1.08, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <img
+                  src={BLUNNO_MASCOT_PNG}
+                  alt="Blunno character"
+                  className="max-h-full max-w-full object-contain object-center"
+                  draggable={false}
+                />
+              </motion.div>
+            </div>
           </div>
         </div>
 
-        {/* Cycle counter and hint */}
         <div className="flex w-full max-w-sm shrink-0 flex-col items-center gap-1 px-1 text-center">
           <p className="font-sans text-sm font-semibold tracking-wide text-white/95 sm:text-base">
             Cycle {exerciseStatus === 'completed' ? TOTAL_CYCLES : currentCycleLabel} of {TOTAL_CYCLES}
@@ -334,7 +400,6 @@ export default function SosPage(): ReactElement {
           )}
         </div>
 
-        {/* Completion actions */}
         {exerciseStatus === 'completed' && (
           <div className="flex w-full max-w-sm shrink-0 flex-col gap-2 sm:flex-row sm:gap-3">
             <Link
