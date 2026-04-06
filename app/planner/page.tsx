@@ -11,8 +11,10 @@ type Task = {
   done: boolean;
 };
 
-/** 5 seeded examples + up to 3 user-added */
-const MAX_TASKS_PER_DAY = 8;
+const DEFAULT_TASK_COUNT = 5;
+const MAX_EXTRA_TASKS = 3;
+/** 5 seeded examples + up to 3 user-added = 8 total */
+const MAX_TASKS_PER_DAY = DEFAULT_TASK_COUNT + MAX_EXTRA_TASKS;
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 
@@ -91,9 +93,12 @@ export default function PlannerPage(): ReactElement {
   const [editBuffer, setEditBuffer] = useState('');
   const [limitHint, setLimitHint] = useState(false);
   const editInputRef = useRef<HTMLInputElement | null>(null);
+  const tasksByDayRef = useRef(tasksByDay);
+  tasksByDayRef.current = tasksByDay;
 
   const tasks = tasksByDay[selectedKey] ?? [];
-  const atTaskLimit = tasks.length >= MAX_TASKS_PER_DAY;
+  const taskCount = tasks.length;
+  const atTaskLimit = taskCount >= MAX_TASKS_PER_DAY;
   const canAdd = !atTaskLimit && draft.trim().length > 0;
 
   useEffect(() => {
@@ -154,9 +159,15 @@ export default function PlannerPage(): ReactElement {
     setEditBuffer(task.text);
   }, []);
 
-  const addTask = useCallback(() => {
+  /** Ref + functional update so limit checks match latest state (no stale closure). */
+  const submitNewTask = useCallback(() => {
     const text = draft.trim();
     if (!text) return;
+    const currentList = tasksByDayRef.current[selectedKey] ?? [];
+    if (currentList.length >= MAX_TASKS_PER_DAY) {
+      setLimitHint(true);
+      return;
+    }
     setTasksByDay((prev) => {
       const list = prev[selectedKey] ?? [];
       if (list.length >= MAX_TASKS_PER_DAY) return prev;
@@ -168,18 +179,11 @@ export default function PlannerPage(): ReactElement {
     setDraft('');
   }, [draft, selectedKey]);
 
-  const tryAddTask = useCallback(() => {
-    if (tasks.length >= MAX_TASKS_PER_DAY) {
-      setLimitHint(true);
-      return;
-    }
-    addTask();
-  }, [addTask, tasks.length]);
-
   return (
     <main
       className={cn(
-        'flex h-screen min-h-0 flex-col overflow-hidden bg-[#0B0B1A] text-white',
+        'relative flex h-dvh min-h-0 max-h-dvh w-full flex-col overflow-hidden overscroll-none bg-[#0B0B1A] text-white',
+        '[contain:layout_style]',
         'px-4 sm:px-5',
         'pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]'
       )}
@@ -276,7 +280,7 @@ export default function PlannerPage(): ReactElement {
 
         <ul
           id={listId}
-          className="max-h-[280px] min-h-0 shrink overflow-y-auto space-y-2 pr-0.5"
+          className="max-h-[280px] min-h-0 shrink overflow-y-auto overscroll-contain space-y-2 pr-0.5 touch-pan-y"
         >
           {tasks.length === 0 ? (
             <li className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6 text-center text-sm text-white/50">
@@ -411,7 +415,7 @@ export default function PlannerPage(): ReactElement {
               className="text-center font-sans text-xs leading-snug text-[#B8C5E8]/90"
               role="status"
             >
-              You can only add up to 3 extra tasks (8 total per day).
+              You can add up to 3 extra tasks (max 8 total).
             </p>
           )}
           <div className="flex gap-2">
@@ -420,10 +424,11 @@ export default function PlannerPage(): ReactElement {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') tryAddTask();
+                if (e.key === 'Enter') submitNewTask();
               }}
               placeholder="Add a gentle task…"
               maxLength={120}
+              enterKeyHint="done"
               disabled={atTaskLimit}
               className={cn(
                 'min-w-0 flex-1 rounded-xl border border-white/12 bg-white/[0.05] px-3 py-2.5 font-sans text-sm text-white placeholder:text-white/35',
@@ -435,8 +440,8 @@ export default function PlannerPage(): ReactElement {
             />
             <button
               type="button"
-              onClick={tryAddTask}
-              disabled={!canAdd}
+              onClick={submitNewTask}
+              disabled={!canAdd || atTaskLimit}
               className={cn(
                 'shrink-0 rounded-xl border border-[#6B9BD9]/35 bg-[#4A6FA8]/40 px-4 py-2.5 font-sans text-sm font-semibold text-white/95',
                 'transition-[transform,opacity,background] duration-200',
