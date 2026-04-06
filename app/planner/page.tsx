@@ -50,6 +50,7 @@ export default function PlannerPage(): ReactElement {
   const [newTaskText, setNewTaskText] = useState('');
   const [editing, setEditing] = useState<{ day: string; index: number } | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [showLimitHint, setShowLimitHint] = useState(false);
 
   const currentTasks = tasksMap[selectedKey] || [];
 
@@ -58,7 +59,8 @@ export default function PlannerPage(): ReactElement {
   const addTask = () => {
     if (!newTaskText.trim()) return;
     if (currentTasks.length >= MAX_TOTAL) {
-      alert(`You can add up to ${MAX_EXTRA} extra tasks (max ${MAX_TOTAL} total).`);
+      setShowLimitHint(true);
+      setTimeout(() => setShowLimitHint(false), 3000);
       return;
     }
     const newTask: Task = {
@@ -119,9 +121,9 @@ export default function PlannerPage(): ReactElement {
   };
 
   return (
-    <main className="relative h-dvh max-h-dvh min-h-0 flex flex-col overflow-hidden overscroll-none bg-[#0B0B1A] text-white">
+    <main className="relative h-dvh max-h-dvh min-h-0 flex flex-col overflow-hidden overscroll-none bg-[#0B0B1A] text-white pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       {/* Header */}
-      <div className="relative flex w-full shrink-0 items-center justify-between px-4 pt-6 pb-2">
+      <div className="relative flex w-full shrink-0 items-center justify-between px-4 pb-2">
         <h1 className="text-xl font-bold tracking-wide">PLANNER</h1>
         <Link
           href="/choose"
@@ -170,8 +172,8 @@ export default function PlannerPage(): ReactElement {
       </div>
 
       {/* Task list – scrollable area */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        <div className="space-y-2">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4">
+        <div className="space-y-2 pb-2">
           {currentTasks.map((task, idx) => (
             <div
               key={task.id}
@@ -220,30 +222,43 @@ export default function PlannerPage(): ReactElement {
 
       {/* Add task input – fixed at bottom */}
       <div className="shrink-0 border-t border-white/10 p-4">
+        {showLimitHint && (
+          <div className="mb-3 rounded-xl bg-orange-500/20 border border-orange-500/30 px-3 py-2">
+            <p className="text-xs text-orange-200 text-center">
+              You can add up to {MAX_EXTRA} extra tasks (max {MAX_TOTAL} total)
+            </p>
+          </div>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addTask()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addTask();
+              }
+            }}
             placeholder="Add a new task..."
-            className="flex-1 rounded-xl bg-[#1a1a2e] px-4 py-2 text-white placeholder-white/40 outline-none"
+            className="flex-1 rounded-xl bg-[#1a1a2e] px-4 py-2 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
             maxLength={60}
+            disabled={currentTasks.length >= MAX_TOTAL}
           />
           <button
             onClick={addTask}
-            disabled={currentTasks.length >= MAX_TOTAL}
-            className={`rounded-xl px-4 py-2 font-medium transition ${
-              currentTasks.length >= MAX_TOTAL
-                ? 'bg-white/10 text-white/30'
-                : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+            disabled={currentTasks.length >= MAX_TOTAL || !newTaskText.trim()}
+            className={`rounded-xl px-4 py-2 font-medium transition-all ${
+              currentTasks.length >= MAX_TOTAL || !newTaskText.trim()
+                ? 'bg-white/10 text-white/30 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600'
             }`}
           >
             Add
           </button>
         </div>
-        {currentTasks.length >= MAX_TOTAL && (
-          <p className="mt-2 text-xs text-white/50">Max {MAX_TOTAL} tasks per day</p>
+        {currentTasks.length >= MAX_TOTAL && !showLimitHint && (
+          <p className="mt-2 text-xs text-white/50 text-center">Max {MAX_TOTAL} tasks per day</p>
         )}
       </div>
     </main>
