@@ -121,7 +121,7 @@ export default function PlannerPage(): ReactElement {
   };
 
   return (
-    <main className="relative h-dvh max-h-dvh min-h-0 flex flex-col overflow-hidden overscroll-none bg-[#0B0B1A] text-white pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <main className="relative flex h-dvh max-h-dvh min-h-0 w-full flex-col overflow-hidden overscroll-none bg-[#0B0B1A] text-white pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       {/* Header */}
       <div className="relative flex w-full shrink-0 items-center justify-between px-4 pb-2">
         <h1 className="text-xl font-bold tracking-wide">PLANNER</h1>
@@ -156,7 +156,7 @@ export default function PlannerPage(): ReactElement {
                   isSelected
                     ? 'bg-gradient-to-r from-blue-500/40 to-purple-500/40 shadow-md'
                     : isWeekend
-                    ? 'bg-gradient-to-br from-[#2A1C29]/80 to-[#905E8C]/80'
+                    ? 'border border-white/12 bg-gradient-to-br from-[#2a3318]/90 to-[#4a5c32]/85 hover:border-lime-200/20 hover:brightness-105'
                     : 'bg-[#1E1E2F]'
                 }`}
               >
@@ -177,17 +177,37 @@ export default function PlannerPage(): ReactElement {
           {currentTasks.map((task, idx) => (
             <div
               key={task.id}
-              className={`flex items-center gap-3 rounded-2xl p-3 transition ${
+              className={`flex min-w-0 items-center gap-3 rounded-2xl p-3 transition ${
                 task.completed
                   ? 'bg-gradient-to-r from-[#2A1C29] to-[#905E8C]'
                   : 'bg-[#1a1a2e]'
               }`}
             >
+              {editing && editing.day === selectedKey && editing.index === idx ? (
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={saveEdit}
+                  onKeyDown={onKeyDownEdit}
+                  autoFocus
+                  className="min-w-0 flex-1 bg-transparent text-base text-white outline-none"
+                />
+              ) : (
+                <span
+                  onClick={() => startEdit(idx, task.text)}
+                  className={`min-w-0 flex-1 cursor-pointer text-base ${task.completed ? 'text-white/60 line-through' : 'text-white'}`}
+                >
+                  {task.text}
+                </span>
+              )}
               <button
+                type="button"
+                aria-pressed={task.completed}
                 onClick={() => toggleCompleted(idx)}
-                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition ${
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${
                   task.completed
-                    ? 'border-green-400 bg-gradient-to-br from-[#2A1C29] to-[#905E8C]'
+                    ? 'border-transparent bg-gradient-to-br from-[#2A1C29] to-[#905E8C] shadow-[0_2px_10px_rgba(42,28,41,0.4)]'
                     : 'border-white/30 bg-transparent'
                 }`}
               >
@@ -197,24 +217,6 @@ export default function PlannerPage(): ReactElement {
                   </svg>
                 )}
               </button>
-              {editing && editing.day === selectedKey && editing.index === idx ? (
-                <input
-                  type="text"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={saveEdit}
-                  onKeyDown={onKeyDownEdit}
-                  autoFocus
-                  className="flex-1 bg-transparent text-base text-white outline-none"
-                />
-              ) : (
-                <span
-                  onClick={() => startEdit(idx, task.text)}
-                  className={`flex-1 text-base ${task.completed ? 'text-white/60 line-through' : 'text-white'}`}
-                >
-                  {task.text}
-                </span>
-              )}
             </div>
           ))}
         </div>
