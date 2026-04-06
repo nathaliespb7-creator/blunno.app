@@ -180,7 +180,7 @@ export default function PlannerPage(): ReactElement {
               className={`flex min-w-0 items-center justify-between gap-3 rounded-2xl p-3 transition ${
                 task.completed
                   ? 'bg-gradient-to-r from-[#2A1C29] to-[#905E8C]'
-                  : 'bg-[#1a1a2e]'
+                  : 'bg-[#1E1E2F]'
               }`}
             >
               {editing && editing.day === selectedKey && editing.index === idx ? (
