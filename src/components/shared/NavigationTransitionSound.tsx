@@ -5,15 +5,9 @@ import { useEffect, type ReactElement } from 'react';
 
 import { playNavigationHoverSoft, unlockAudioSession } from '@/lib/navigationSound';
 
-/** Survives Strict Mode remounts so we don't double-fire incorrectly. */
 let lastKnownPath: string | null = null;
 let userHasInteracted = false;
 
-/**
- * Plays hover-soft on every client-side route change (Link, router.push, back/forward).
- * Skips the first paint for the current URL.
- * Unlocks audio on first user interaction (click/touch) to comply with browser policies.
- */
 export function NavigationTransitionSound(): ReactElement | null {
   const pathname = usePathname();
 
@@ -46,7 +40,6 @@ export function NavigationTransitionSound(): ReactElement | null {
     }
     if (lastKnownPath !== pathname) {
       console.log(`[NavigationSound] Route changed: ${lastKnownPath} -> ${pathname}`);
-      // Play sound only after user has interacted (audio is unlocked)
       if (userHasInteracted) {
         playNavigationHoverSoft();
       } else {
