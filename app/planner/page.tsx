@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, type ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 
-import { playTaskCompleteInhale } from '@/lib/navigationSound';
+import { playTaskCompleteInhale, unlockAudioSession } from '@/lib/navigationSound';
 
 interface Task {
   id: string;
@@ -109,7 +109,8 @@ export default function PlannerPage(): ReactElement {
       const willBecomeComplete = !task.completed;
       tasks[index] = { ...task, completed: !task.completed };
       if (willBecomeComplete && typeof window !== 'undefined') {
-        queueMicrotask(() => playTaskCompleteInhale());
+        unlockAudioSession();
+        playTaskCompleteInhale();
       }
       return { ...prev, [selectedKey]: tasks };
     });
@@ -231,46 +232,115 @@ export default function PlannerPage(): ReactElement {
           {currentTasks.map((task, idx) => (
             <div
               key={task.id}
-              className={`flex min-w-0 items-center justify-between gap-3 rounded-2xl border p-3 transition ${
+              className={`flex min-w-0 items-center justify-between gap-2 rounded-2xl border p-3 transition ${
                 task.completed
                   ? 'border-white/10 bg-gradient-to-r from-[#2A1C29] to-[#905E8C]'
                   : 'border-white/12 bg-[linear-gradient(to_right,rgba(11,79,102,0.9)_5%,rgba(22,159,204,0.78)_90%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]'
               }`}
             >
               {editing && editing.day === selectedKey && editing.index === idx ? (
-                <input
-                  type="text"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  onBlur={saveEdit}
-                  onKeyDown={onKeyDownEdit}
-                  autoFocus
-                  className="min-w-0 flex-1 bg-transparent text-base text-white outline-none"
-                />
+                <>
+                  <input
+                    type="text"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onBlur={saveEdit}
+                    onKeyDown={onKeyDownEdit}
+                    autoFocus
+                    className="min-w-0 flex-1 bg-transparent text-base text-white outline-none"
+                  />
+                  <label className="relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => toggleCompleted(idx)}
+                      className="peer sr-only"
+                      aria-label={task.completed ? `Mark "${task.text}" as not done` : `Mark "${task.text}" as done`}
+                    />
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition peer-focus-visible:ring-2 peer-focus-visible:ring-blue-400/60 ${
+                        task.completed
+                          ? 'border-transparent bg-gradient-to-br from-[#2A1C29] to-[#905E8C] shadow-[0_2px_10px_rgba(42,28,41,0.4)]'
+                          : 'border-white/30 bg-transparent'
+                      }`}
+                    >
+                      {task.completed && (
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </span>
+                  </label>
+                </>
               ) : (
-                <span
-                  onClick={() => startEdit(idx, task.text)}
-                  className={`min-w-0 flex-1 cursor-pointer text-base ${task.completed ? 'text-white opacity-60 line-through' : 'text-white'}`}
-                >
-                  {task.text}
-                </span>
+                <>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => startEdit(idx, task.text)}
+                    onTouchStart={() => startEdit(idx, task.text)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        startEdit(idx, task.text);
+                      }
+                    }}
+                    className={`min-w-0 flex-1 cursor-text break-words text-base touch-manipulation ${task.completed ? 'text-white opacity-60 line-through' : 'text-white'}`}
+                  >
+                    {task.text}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Edit task: ${task.text}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEdit(idx, task.text);
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      startEdit(idx, task.text);
+                    }}
+                    className="flex h-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl text-white/85 hover:text-white active:opacity-80"
+                  >
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.75}
+                      aria-hidden
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+                      />
+                    </svg>
+                  </button>
+                  <label className="relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => toggleCompleted(idx)}
+                      className="peer sr-only"
+                      aria-label={task.completed ? `Mark "${task.text}" as not done` : `Mark "${task.text}" as done`}
+                    />
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition peer-focus-visible:ring-2 peer-focus-visible:ring-blue-400/60 ${
+                        task.completed
+                          ? 'border-transparent bg-gradient-to-br from-[#2A1C29] to-[#905E8C] shadow-[0_2px_10px_rgba(42,28,41,0.4)]'
+                          : 'border-white/30 bg-transparent'
+                      }`}
+                    >
+                      {task.completed && (
+                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </span>
+                  </label>
+                </>
               )}
-              <button
-                type="button"
-                aria-pressed={task.completed}
-                onClick={() => toggleCompleted(idx)}
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${
-                  task.completed
-                    ? 'border-transparent bg-gradient-to-br from-[#2A1C29] to-[#905E8C] shadow-[0_2px_10px_rgba(42,28,41,0.4)]'
-                    : 'border-white/30 bg-transparent'
-                }`}
-              >
-                {task.completed && (
-                  <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </button>
             </div>
           ))}
         </div>

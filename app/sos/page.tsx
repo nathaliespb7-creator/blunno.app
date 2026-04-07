@@ -1,11 +1,11 @@
 'use client';
 
-import { Howl } from 'howler';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 
 import { BLUNNO_MASCOT_PNG } from '@/lib/assets';
+import { getExhaleSound } from '@/lib/navigationSound';
 import { cn } from '@/lib/utils';
 
 const TOTAL_CYCLES = 3;
@@ -81,24 +81,6 @@ function buildRingFilters(blurPx: number, glowHex: string): { progress: string; 
   return { progress, wrapper };
 }
 
-let exhaleSingleton: Howl | null = null;
-
-function getExhale(): Howl {
-  if (typeof window === 'undefined') {
-    return null as unknown as Howl;
-  }
-  if (!exhaleSingleton) {
-    exhaleSingleton = new Howl({
-      src: ['/sounds/exhale.mp3'],
-      volume: 0.4,
-      onloaderror: () => {
-        console.log('[SOS] exhale.mp3 unavailable, skipping sound');
-      },
-    });
-  }
-  return exhaleSingleton;
-}
-
 export default function SosPage(): ReactElement {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const lastAngleRef = useRef<number | null>(null);
@@ -149,7 +131,7 @@ export default function SosPage(): ReactElement {
   const applyCycleCompletion = useCallback((newCompleted: number) => {
     setFeedback(cycleFeedbackMessage(newCompleted));
     try {
-      getExhale().play();
+      getExhaleSound()?.play();
     } catch {
       console.log('[SOS] could not play exhale');
     }

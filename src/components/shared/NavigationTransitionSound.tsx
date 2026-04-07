@@ -11,20 +11,17 @@ let userHasInteracted = false;
 export function NavigationTransitionSound(): ReactElement | null {
   const pathname = usePathname();
 
-  // One-time setup: unlock audio after any user interaction
   useEffect(() => {
     const handleFirstInteraction = () => {
-      if (!userHasInteracted) {
-        userHasInteracted = true;
-        unlockAudioSession();
-        console.log('[NavigationSound] Audio unlocked on first user interaction');
-      }
+      if (userHasInteracted) return;
+      userHasInteracted = true;
+      unlockAudioSession();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
     };
 
-    if (!userHasInteracted) {
-      document.addEventListener('click', handleFirstInteraction, { once: true });
-      document.addEventListener('touchstart', handleFirstInteraction, { once: true });
-    }
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('touchstart', handleFirstInteraction, { passive: true });
 
     return () => {
       document.removeEventListener('click', handleFirstInteraction);
@@ -32,18 +29,14 @@ export function NavigationTransitionSound(): ReactElement | null {
     };
   }, []);
 
-  // Route change detection and sound playback
   useEffect(() => {
     if (lastKnownPath === null) {
       lastKnownPath = pathname;
       return;
     }
     if (lastKnownPath !== pathname) {
-      console.log(`[NavigationSound] Route changed: ${lastKnownPath} -> ${pathname}`);
       if (userHasInteracted) {
         playNavigationHoverSoft();
-      } else {
-        console.log('[NavigationSound] Skipped sound – waiting for user interaction');
       }
       lastKnownPath = pathname;
     }

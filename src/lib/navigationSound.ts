@@ -2,19 +2,28 @@ import { Howl, Howler } from 'howler';
 
 /**
  * Mobile Safari / Chrome require a user gesture before audio; Web Audio may stay
- * suspended until resumed. Use AudioUnlock (capture pointerdown) + unlockAudioSession.
- * html5: true improves MP3 playback on many mobile browsers.
+ * suspended until resumed. Use AudioUnlock + unlockAudioSession.
+ * html5: true + preload improve MP3 playback on mobile browsers.
  */
 
 let navigationPop: Howl | null = null;
 let hoverSoftSound: Howl | null = null;
 let inhaleSound: Howl | null = null;
+let exhaleSound: Howl | null = null;
 
 const howlOpts = {
   volume: 0.4,
-  preload: false as const,
+  preload: true as const,
   html5: true as const,
 };
+
+/** Warm all app sounds after first user gesture (mobile-friendly). */
+function preloadAppSounds(): void {
+  if (typeof window === 'undefined') return;
+  getHoverSoftSound();
+  getInhaleSound();
+  getExhaleSound();
+}
 
 /** Welcome / route transitions — soft hover cue */
 function getHoverSoftSound(): Howl | null {
@@ -28,9 +37,6 @@ function getHoverSoftSound(): Howl | null {
       html5: true,
       onloaderror: (_id, err) => {
         console.warn('[nav] hover-soft.mp3 unavailable:', err);
-      },
-      onload: () => {
-        console.log('[nav] hover-soft.mp3 loaded successfully');
       },
     });
   }
@@ -65,26 +71,33 @@ function getInhaleSound(): Howl | null {
   return inhaleSound;
 }
 
-let audioUnlocked = false;
+/** Shared exhale asset (e.g. SOS); same preload/html5 as other app sounds. */
+export function getExhaleSound(): Howl | null {
+  if (typeof window === 'undefined') return null;
+  if (!exhaleSound) {
+    exhaleSound = new Howl({
+      src: ['/sounds/exhale.mp3'],
+      ...howlOpts,
+      onloaderror: (_id, err) => {
+        console.warn('[sos] exhale.mp3 unavailable:', err);
+      },
+    });
+  }
+  return exhaleSound;
+}
 
-/** Call on first user interaction (see AudioUnlock) so route / async sounds can play. */
+/** Call on first user interaction so route / task sounds can play on mobile. Idempotent. */
 export function unlockAudioSession(): void {
   if (typeof window === 'undefined') return;
-  if (audioUnlocked) return;
-  
   try {
     const ctx = Howler.ctx;
     if (ctx && ctx.state === 'suspended') {
-      void ctx.resume().then(() => {
-        audioUnlocked = true;
-        console.log('[audio] session unlocked successfully');
-      });
-    } else {
-      audioUnlocked = true;
+      void ctx.resume();
     }
   } catch (e) {
     console.warn('[audio] unlock failed:', e);
   }
+  preloadAppSounds();
 }
 
 /** Legacy pop (optional); prefer playNavigationHoverSoft for route changes. */
@@ -96,27 +109,21 @@ export function playNavigationPop(): void {
   }
 }
 
-/** Play on every client-side route change (enter/leave) — same file as Welcome hover. */
+/** Play on every client-side route change — same file as Welcome hover. */
 export function playNavigationHoverSoft(): void {
   if (typeof window === 'undefined') return;
-  
-  // Ensure audio is unlocked first
   unlockAudioSession();
-  
   try {
-    const sound = getHoverSoftSound();
-    if (sound) {
-      sound.play();
-      console.log('[nav] playing hover-soft sound');
-    }
+    getHoverSoftSound()?.play();
   } catch (e) {
     console.warn('[nav] hover-soft play failed:', e);
   }
 }
 
-/** Planner: task marked complete (false → true) only — call synchronously in the click path. */
+/** Planner: task marked complete (false → true). Call in the same tick as the user gesture. */
 export function playTaskCompleteInhale(): void {
   if (typeof window === 'undefined') return;
+  unlockAudioSession();
   try {
     getInhaleSound()?.play();
   } catch (e) {
