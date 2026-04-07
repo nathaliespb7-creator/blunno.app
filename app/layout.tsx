@@ -49,7 +49,7 @@ const inter = Inter({
   weight: ['400'],
 });
 
-const shellBg = '#0d0524';
+const shellBg = '#0B0B1A';
 
 export const viewport: Viewport = {
   themeColor: shellBg,

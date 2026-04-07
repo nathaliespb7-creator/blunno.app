@@ -10,7 +10,7 @@ module.exports = {
     extend: {
       colors: {
         blunno: {
-          bg: '#0d0524',
+          bg: '#0B0B1A',
           /** Welcome frame / контраст с белым и бирюзой */
           welcome: '#0d081b',
           brandTeal: '#2dd4bf',
