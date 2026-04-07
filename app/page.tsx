@@ -1,38 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { Howl } from 'howler';
 import { useState, type ReactElement } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { BlunnoBlob } from '@/components/shared/BlunnoBlob';
+import { playNavigationHoverSoft, unlockAudioSession } from '@/lib/navigationSound';
 import { cn } from '@/lib/utils';
-
-// Lazy-init Howler on first interaction (lighter first paint on slow devices).
-// Transition “pop” is global (NavigationTransitionSound + /lib/navigationSound).
-let hoverSound: Howl | null = null;
-let soundsReady: Promise<void> | null = null;
-
-async function ensureSounds(): Promise<void> {
-  if (typeof window === 'undefined') return;
-  if (soundsReady) return soundsReady;
-  soundsReady = (async () => {
-    try {
-      const { Howl } = await import('howler');
-      hoverSound = new Howl({
-        src: ['/sounds/hover-soft.mp3'],
-        volume: 0.15,
-        rate: 1.2,
-        onloaderror: (id, error) => {
-          console.warn('Failed to load hover sound:', error);
-        },
-      });
-    } catch (error) {
-      console.warn('Failed to initialize audio:', error);
-    }
-  })();
-  return soundsReady;
-}
 
 export default function WelcomePage(): ReactElement {
   const router = useRouter();
@@ -40,7 +14,8 @@ export default function WelcomePage(): ReactElement {
 
   const handleMouseEnter = () => {
     setIsHovered(true);
-    void ensureSounds().then(() => hoverSound?.play());
+    unlockAudioSession();
+    playNavigationHoverSoft();
   };
 
   const handleBlobClick = () => {

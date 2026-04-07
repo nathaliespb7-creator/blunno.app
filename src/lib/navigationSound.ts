@@ -7,6 +7,7 @@ import { Howl, Howler } from 'howler';
  */
 
 let navigationPop: Howl | null = null;
+let hoverSoftSound: Howl | null = null;
 let inhaleSound: Howl | null = null;
 
 const howlOpts = {
@@ -14,6 +15,24 @@ const howlOpts = {
   preload: false as const,
   html5: true as const,
 };
+
+/** Welcome / route transitions — soft hover cue */
+function getHoverSoftSound(): Howl | null {
+  if (typeof window === 'undefined') return null;
+  if (!hoverSoftSound) {
+    hoverSoftSound = new Howl({
+      src: ['/sounds/hover-soft.mp3'],
+      volume: 0.15,
+      rate: 1.2,
+      preload: false,
+      html5: true,
+      onloaderror: (_id, err) => {
+        console.warn('[nav] hover-soft.mp3 unavailable:', err);
+      },
+    });
+  }
+  return hoverSoftSound;
+}
 
 function getNavigationPop(): Howl | null {
   if (typeof window === 'undefined') return null;
@@ -56,12 +75,21 @@ export function unlockAudioSession(): void {
   }
 }
 
-/** Play on client-side route changes (see NavigationTransitionSound). */
+/** Legacy pop (optional); prefer playNavigationHoverSoft for route changes. */
 export function playNavigationPop(): void {
   try {
     getNavigationPop()?.play();
   } catch (e) {
     console.warn('[nav] pop play failed:', e);
+  }
+}
+
+/** Play on every client-side route change (enter/leave) — same file as Welcome hover. */
+export function playNavigationHoverSoft(): void {
+  try {
+    getHoverSoftSound()?.play();
+  } catch (e) {
+    console.warn('[nav] hover-soft play failed:', e);
   }
 }
 
