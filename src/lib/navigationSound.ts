@@ -24,10 +24,13 @@ function getHoverSoftSound(): Howl | null {
       src: ['/sounds/hover-soft.mp3'],
       volume: 0.15,
       rate: 1.2,
-      preload: false,
+      preload: true,
       html5: true,
       onloaderror: (_id, err) => {
         console.warn('[nav] hover-soft.mp3 unavailable:', err);
+      },
+      onload: () => {
+        console.log('[nav] hover-soft.mp3 loaded successfully');
       },
     });
   }
@@ -62,13 +65,22 @@ function getInhaleSound(): Howl | null {
   return inhaleSound;
 }
 
+let audioUnlocked = false;
+
 /** Call on first user interaction (see AudioUnlock) so route / async sounds can play. */
 export function unlockAudioSession(): void {
   if (typeof window === 'undefined') return;
+  if (audioUnlocked) return;
+  
   try {
     const ctx = Howler.ctx;
     if (ctx && ctx.state === 'suspended') {
-      void ctx.resume();
+      void ctx.resume().then(() => {
+        audioUnlocked = true;
+        console.log('[audio] session unlocked successfully');
+      });
+    } else {
+      audioUnlocked = true;
     }
   } catch (e) {
     console.warn('[audio] unlock failed:', e);
@@ -86,8 +98,17 @@ export function playNavigationPop(): void {
 
 /** Play on every client-side route change (enter/leave) — same file as Welcome hover. */
 export function playNavigationHoverSoft(): void {
+  if (typeof window === 'undefined') return;
+  
+  // Ensure audio is unlocked first
+  unlockAudioSession();
+  
   try {
-    getHoverSoftSound()?.play();
+    const sound = getHoverSoftSound();
+    if (sound) {
+      sound.play();
+      console.log('[nav] playing hover-soft sound');
+    }
   } catch (e) {
     console.warn('[nav] hover-soft play failed:', e);
   }
