@@ -95,6 +95,7 @@ export function playNavigationHoverSoft(): void {
 
 /** Planner: task marked complete (false → true) only — call synchronously in the click path. */
 export function playTaskCompleteInhale(): void {
+  if (typeof window === 'undefined') return;
   try {
     getInhaleSound()?.play();
   } catch (e) {
