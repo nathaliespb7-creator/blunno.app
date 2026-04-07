@@ -1,67 +1,75 @@
-import type { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 
-/** Same transition cue as Welcome → Choose (`/sounds/pop.mp3`). */
+/**
+ * Mobile Safari / Chrome require a user gesture before audio; Web Audio may stay
+ * suspended until resumed. Use AudioUnlock (capture pointerdown) + unlockAudioSession.
+ * html5: true improves MP3 playback on many mobile browsers.
+ */
+
 let navigationPop: Howl | null = null;
-let soundsReady: Promise<void> | null = null;
+let inhaleSound: Howl | null = null;
 
-async function ensureNavigationSounds(): Promise<void> {
+const howlOpts = {
+  volume: 0.4,
+  preload: false as const,
+  html5: true as const,
+};
+
+function getNavigationPop(): Howl | null {
+  if (typeof window === 'undefined') return null;
+  if (!navigationPop) {
+    navigationPop = new Howl({
+      src: ['/sounds/pop.mp3'],
+      ...howlOpts,
+      onloaderror: (_id, err) => {
+        console.warn('[nav] pop sound unavailable:', err);
+      },
+    });
+  }
+  return navigationPop;
+}
+
+function getInhaleSound(): Howl | null {
+  if (typeof window === 'undefined') return null;
+  if (!inhaleSound) {
+    inhaleSound = new Howl({
+      src: ['/sounds/inhale.mp3'],
+      ...howlOpts,
+      onloaderror: (_id, err) => {
+        console.warn('[planner] inhale.mp3 unavailable:', err);
+      },
+    });
+  }
+  return inhaleSound;
+}
+
+/** Call on first user interaction (see AudioUnlock) so route / async sounds can play. */
+export function unlockAudioSession(): void {
   if (typeof window === 'undefined') return;
-  if (soundsReady) return soundsReady;
-  soundsReady = (async () => {
-    try {
-      const { Howl } = await import('howler');
-      navigationPop = new Howl({
-        src: ['/sounds/pop.mp3'],
-        volume: 0.4,
-        preload: false,
-        onloaderror: (_id, err) => {
-          console.warn('[nav] pop sound unavailable:', err);
-        },
-      });
-    } catch (e) {
-      console.warn('[nav] failed to init navigation sound:', e);
+  try {
+    const ctx = Howler.ctx;
+    if (ctx && ctx.state === 'suspended') {
+      void ctx.resume();
     }
-  })();
-  return soundsReady;
+  } catch (e) {
+    console.warn('[audio] unlock failed:', e);
+  }
 }
 
 /** Play on client-side route changes (see NavigationTransitionSound). */
 export function playNavigationPop(): void {
-  void ensureNavigationSounds().then(() => navigationPop?.play());
+  try {
+    getNavigationPop()?.play();
+  } catch (e) {
+    console.warn('[nav] pop play failed:', e);
+  }
 }
 
-/** Planner: task marked complete (`/sounds/inhale.mp3`). */
-let inhaleSound: Howl | null = null;
-let inhaleReady: Promise<void> | null = null;
-
-async function ensureInhaleSound(): Promise<void> {
-  if (typeof window === 'undefined') return;
-  if (inhaleReady) return inhaleReady;
-  inhaleReady = (async () => {
-    try {
-      const { Howl } = await import('howler');
-      inhaleSound = new Howl({
-        src: ['/sounds/inhale.mp3'],
-        volume: 0.4,
-        preload: false,
-        onloaderror: (_id, err) => {
-          console.warn('[planner] inhale.mp3 unavailable:', err);
-        },
-      });
-    } catch (e) {
-      console.warn('[planner] failed to init inhale sound:', e);
-    }
-  })();
-  return inhaleReady;
-}
-
-/** Plays when a task is checked off (false → true) only. */
+/** Planner: task marked complete (false → true) only — call synchronously in the click path. */
 export function playTaskCompleteInhale(): void {
-  void ensureInhaleSound().then(() => {
-    try {
-      inhaleSound?.play();
-    } catch (e) {
-      console.warn('[planner] inhale play failed:', e);
-    }
-  });
+  try {
+    getInhaleSound()?.play();
+  } catch (e) {
+    console.warn('[planner] inhale play failed:', e);
+  }
 }

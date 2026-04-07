@@ -2,6 +2,7 @@ import './globals.css';
 import { Comfortaa, Inter, Poppins, Roboto, Sarabun, Tiro_Telugu } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
 
+import { AudioUnlock } from '@/components/shared/AudioUnlock';
 import { NavigationTransitionSound } from '@/components/shared/NavigationTransitionSound';
 import { Notification } from '@/components/ui';
 
@@ -87,6 +88,7 @@ export default function RootLayout({
       className={`${welcomeDisplay.variable} ${tiroTelugu.variable} ${comfortaa.variable} ${sarabun.variable} ${roboto.variable} ${inter.variable} min-h-dvh overflow-x-hidden bg-blunno-bg`}
     >
       <body className="min-h-dvh w-full max-w-[100vw] overflow-x-hidden font-sans text-blunno-foreground antialiased">
+        <AudioUnlock />
         <NavigationTransitionSound />
         {children}
         <Notification />

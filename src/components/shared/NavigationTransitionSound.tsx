@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect, type ReactElement } from 'react';
 
-import { playNavigationPop } from '@/lib/navigationSound';
+import { playNavigationPop, unlockAudioSession } from '@/lib/navigationSound';
 
 /** Survives Strict Mode remounts so we don’t double-fire incorrectly. */
 let lastKnownPath: string | null = null;
@@ -21,6 +21,7 @@ export function NavigationTransitionSound(): ReactElement | null {
       return;
     }
     if (lastKnownPath !== pathname) {
+      unlockAudioSession();
       playNavigationPop();
       lastKnownPath = pathname;
     }

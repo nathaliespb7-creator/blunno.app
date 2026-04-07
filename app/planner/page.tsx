@@ -109,7 +109,7 @@ export default function PlannerPage(): ReactElement {
       const willBecomeComplete = !task.completed;
       tasks[index] = { ...task, completed: !task.completed };
       if (willBecomeComplete) {
-        queueMicrotask(() => playTaskCompleteInhale());
+        playTaskCompleteInhale();
       }
       return { ...prev, [selectedKey]: tasks };
     });
