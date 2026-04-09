@@ -11,34 +11,6 @@ import { audioService } from '@/services/audioService';
 
 type GameKey = 'snake' | 'snipper' | 'balloon';
 
-type GameCard = {
-  id: GameKey;
-  title: string;
-  description: string;
-  imageSrc: string;
-};
-
-const CARDS: readonly GameCard[] = [
-  {
-    id: 'snake',
-    title: 'Snake',
-    description: 'Collect treats, grow longer, avoid collisions.',
-    imageSrc: '/images/play/snake-preview.png',
-  },
-  {
-    id: 'snipper',
-    title: 'Spinner',
-    description: 'A calm tactile spinner for quick grounding.',
-    imageSrc: '/images/play/spinner-preview.png',
-  },
-  {
-    id: 'balloon',
-    title: 'Balloon Pop',
-    description: 'Pop balloons before the timer runs out.',
-    imageSrc: '/images/play/balloon-preview.png',
-  },
-] as const;
-
 export function PlayHub(): ReactElement {
   const [selectedGame, setSelectedGame] = useState<GameKey | null>(null);
 
@@ -52,42 +24,105 @@ export function PlayHub(): ReactElement {
     setSelectedGame(null);
   };
 
+  const snakePixels = [
+    [0, 0],
+    [1, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [6, 0],
+    [0, 1],
+    [3, 1],
+    [6, 1],
+    [1, 2],
+    [2, 2],
+    [3, 2],
+  ] as const;
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#0D0524] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] text-white">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h1 className="font-welcome text-3xl font-bold tracking-wide text-white md:text-4xl">
-            PLAY WITH BLUNNO
-          </h1>
-          <Link
-            href="/choose"
-            className="rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10"
-          >
-            Exit
-          </Link>
-        </div>
-
+      <div className="mx-auto w-full max-w-[390px] rounded-[25px] border border-black/40 bg-[#0D0524] shadow-[0_4px_24px_rgba(0,0,0,0.45)]">
         {selectedGame === null ? (
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {CARDS.map((card) => (
-              <button
-                key={card.id}
-                type="button"
-                onClick={() => {
-                  void openGame(card.id);
-                }}
-                className="cursor-pointer rounded-2xl border border-white/10 bg-white/5 p-4 text-left shadow-xl backdrop-blur-sm transition-transform hover:scale-[1.02]"
+          <section className="relative min-h-[853px] px-5 pb-10 pt-9">
+            <div className="flex justify-end">
+              <Link
+                href="/choose"
+                aria-label="Back home"
+                className="relative h-10 w-10 overflow-hidden rounded-lg border border-white/25"
               >
-                <div className="relative mb-3 h-32 w-full overflow-hidden rounded-lg">
-                  <Image src={card.imageSrc} alt={`${card.title} preview`} fill className="object-cover" />
-                </div>
-                <h2 className="text-xl font-bold text-white">{card.title}</h2>
-                <p className="mt-1 text-sm text-white/75">{card.description}</p>
-              </button>
-            ))}
+                <Image src="/images/play/spinner-preview.png" alt="Home" fill className="object-cover" />
+              </Link>
+            </div>
+
+            <h1 className="mt-16 w-full shrink-0 py-2 text-center font-sans text-lg font-extrabold uppercase leading-tight tracking-figma [text-shadow:var(--shadow-text-title)] sm:text-xl md:text-[22px]">
+              <span className="text-white">PLAY WITH </span>
+              <span className="text-[#00FFD1]">BLUNNO</span>
+            </h1>
+
+            <button
+              type="button"
+              onClick={() => {
+                void openGame('snake');
+              }}
+              className="mt-12 flex w-full justify-center"
+              aria-label="Open Snake game"
+            >
+              <div className="grid grid-cols-9 gap-0.5 rounded-sm p-1">
+                {Array.from({ length: 27 }).map((_, i) => {
+                  const x = i % 9;
+                  const y = Math.floor(i / 9);
+                  const on = snakePixels.some(([sx, sy]) => sx === x && sy === y);
+                  const isFood = x === 7 && y === 1;
+                  return (
+                    <div
+                      key={`${x}-${y}`}
+                      className={[
+                        'h-4 w-4 sm:h-5 sm:w-5',
+                        on ? 'bg-[#E8F346]' : 'bg-transparent',
+                        isFood ? '!bg-red-600' : '',
+                      ].join(' ')}
+                    />
+                  );
+                })}
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                void openGame('snipper');
+              }}
+              className="mx-auto mt-16 block"
+              aria-label="Open Spinner game"
+            >
+              <Image
+                src="/images/play/snake-preview.png"
+                alt="Spinner"
+                width={230}
+                height={180}
+                className="h-auto w-[230px] drop-shadow-[0_8px_16px_rgba(0,0,0,0.45)]"
+              />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                void openGame('balloon');
+              }}
+              className="mx-auto mt-16 block"
+              aria-label="Open Balloon Pop game"
+            >
+              <Image
+                src="/images/play/balloon-popit.png"
+                alt="Balloon Pop visual"
+                width={320}
+                height={205}
+                className="h-auto w-[250px] drop-shadow-[0_10px_20px_rgba(0,0,0,0.45)]"
+              />
+            </button>
           </section>
         ) : (
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-sm">
+          <section className="min-h-[853px] p-4">
             <button
               type="button"
               onClick={backToGames}
