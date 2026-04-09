@@ -47,7 +47,7 @@ export function PlayHub(): ReactElement {
             <div className="flex w-full shrink-0 justify-end">
               <Link
                 href="/choose"
-                aria-label="Back home"
+                aria-label="Exit to mode selection"
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#1a1a2e]/90 text-white/95 shadow-md backdrop-blur-sm"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -56,11 +56,6 @@ export function PlayHub(): ReactElement {
                 </svg>
               </Link>
             </div>
-
-            <h1 className="mb-8 mt-8 w-full text-center font-sans text-lg font-extrabold uppercase leading-tight tracking-figma [text-shadow:var(--shadow-text-title)] sm:mb-10 sm:mt-12 sm:text-xl md:text-[22px]">
-              <span className="text-white">PLAY WITH </span>
-              <span className="text-[#00FFD1]">BLUNNO</span>
-            </h1>
 
             <div className="mt-8 grid w-full grid-cols-1 justify-items-center gap-6 sm:mt-12 sm:grid-cols-3 sm:gap-8">
               <button
