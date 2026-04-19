@@ -138,7 +138,6 @@ export function BlunnoTetris(): ReactElement {
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [board, setBoard] = useState<number[][]>(() => emptyBoard());
   const [piece, setPiece] = useState<Piece>(() => createPiece());
-  /** Start active so opening from PlayHub immediately runs gravity (matches TetrisGame / user expectation). */
   const [running, setRunning] = useState(true);
   const [score, setScore] = useState(0);
   const [lines, setLines] = useState(0);
