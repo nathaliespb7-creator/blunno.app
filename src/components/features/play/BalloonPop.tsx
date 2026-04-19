@@ -82,12 +82,12 @@ export function BalloonPop(): ReactElement {
   const status = useMemo(() => (running ? 'Pop as many as you can!' : 'Time is up!'), [running]);
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <div className="mb-3 flex items-center justify-between text-sm font-semibold text-white/85">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-md flex-col">
+      <div className="mb-2 flex shrink-0 items-center justify-between text-sm font-semibold text-white/85">
         <span>Score: {score}</span>
         <span>Time: {timeLeft}s</span>
       </div>
-      <div className="relative h-96 overflow-hidden rounded-xl border border-white/20 bg-black/25">
+      <div className="relative min-h-[min(42dvh,20rem)] flex-1 overflow-hidden rounded-xl border border-white/20 bg-black/25">
         {balloons.map((b) => (
           <button
             key={b.id}
@@ -105,9 +105,9 @@ export function BalloonPop(): ReactElement {
           />
         ))}
       </div>
-      <p className="mt-3 text-center text-sm text-white/70">{status}</p>
+      <p className="mt-2 shrink-0 text-center text-sm text-white/70">{status}</p>
       {!running && (
-        <div className="mt-3 flex justify-center">
+        <div className="mt-2 flex shrink-0 justify-center">
           <button
             type="button"
             onClick={restart}

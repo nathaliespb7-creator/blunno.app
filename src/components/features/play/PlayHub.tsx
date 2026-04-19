@@ -194,7 +194,7 @@ export function PlayHub(): ReactElement {
                 </svg>
               </Link>
             </div>
-            <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+            <div className="flex min-h-0 flex-1 w-full flex-col overflow-hidden">
               {selectedGame === 'tetris' && <BlunnoTetris />}
               {selectedGame === 'spinner' && <SpinnerGame />}
               {selectedGame === 'balloon' && <BalloonPop />}

@@ -180,6 +180,29 @@ export function BlunnoTetris(): ReactElement {
     });
   }, [board, running]);
 
+  const lockPieceAndContinue = useCallback(
+    (mergedBoard: number[][]) => {
+      const { board: cleared, lines: removed } = clearLines(mergedBoard);
+      if (removed > 0) {
+        setScore((s) => s + removed * 100);
+        setLines((l) => l + removed);
+        void audioService.play('pop');
+      }
+
+      const next = createPiece();
+      if (collides(cleared, next)) {
+        setBoard(cleared);
+        setRunning(false);
+        void audioService.play('exhale');
+        return;
+      }
+
+      setBoard(cleared);
+      setPiece(next);
+    },
+    []
+  );
+
   const stepDown = useCallback(() => {
     if (!running) return;
 
@@ -189,24 +212,19 @@ export function BlunnoTetris(): ReactElement {
     }
 
     const merged = lockPiece(board, piece);
-    const { board: cleared, lines: removed } = clearLines(merged);
-    if (removed > 0) {
-      setScore((s) => s + removed * 100);
-      setLines((l) => l + removed);
-      void audioService.play('pop');
-    }
+    lockPieceAndContinue(merged);
+  }, [board, piece, running, lockPieceAndContinue]);
 
-    const next = createPiece();
-    if (collides(cleared, next)) {
-      setBoard(cleared);
-      setRunning(false);
-      void audioService.play('exhale');
-      return;
+  const hardDrop = useCallback(() => {
+    if (!running) return;
+    let y = piece.y;
+    while (!collides(board, { ...piece, y }, 0, 1)) {
+      y += 1;
     }
-
-    setBoard(cleared);
-    setPiece(next);
-  }, [board, piece, running]);
+    const landed = { ...piece, y };
+    const merged = lockPiece(board, landed);
+    lockPieceAndContinue(merged);
+  }, [board, piece, running, lockPieceAndContinue]);
 
   useEffect(() => {
     if (!running) return;
@@ -221,10 +239,14 @@ export function BlunnoTetris(): ReactElement {
       if (e.key === 'ArrowRight') move(1);
       if (e.key === 'ArrowDown') stepDown();
       if (e.key === 'ArrowUp') rotate();
+      if (e.key === ' ') {
+        e.preventDefault();
+        hardDrop();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [move, rotate, stepDown]);
+  }, [move, rotate, stepDown, hardDrop]);
 
   useEffect(() => {
     if (score <= topScore) return;
@@ -252,10 +274,10 @@ export function BlunnoTetris(): ReactElement {
 
   return (
     <div
-      className="mx-auto flex h-full min-h-0 w-full max-w-[920px] flex-col items-center justify-between gap-2 overflow-hidden bg-[#0D0524] p-2 text-white sm:p-3"
+      className="mx-auto flex h-full min-h-0 w-full max-w-[920px] flex-col items-center gap-1 overflow-hidden bg-[#0D0524] p-1.5 text-white [@media(min-height:700px)]:gap-2 [@media(min-height:700px)]:p-2 sm:p-3"
       onPointerDown={unlockAudioOnce}
     >
-      <div className="grid w-full max-w-[460px] grid-cols-2 gap-2">
+      <div className="grid w-full max-w-[460px] shrink-0 grid-cols-2 gap-1.5 sm:gap-2">
         <div className="rounded-xl border border-white/25 bg-gradient-to-br from-[#2C1948] to-[#6A3CAE] p-2 text-center shadow-lg [box-shadow:inset_0_1px_0_rgba(255,255,255,0.12)]">
           <p className="text-xs tracking-wide text-white/85">SCORE</p>
           <p className="text-xl font-extrabold text-[#00FFD1] sm:text-3xl">{score}</p>
@@ -268,15 +290,15 @@ export function BlunnoTetris(): ReactElement {
         </div>
       </div>
 
-      <div className="h-[min(46dvh,500px)] w-full max-w-[360px] rounded-2xl border border-[#2DD4BF]/20 bg-white/8 p-2 shadow-lg backdrop-blur-sm">
-        <div className="grid h-full grid-cols-[repeat(10,minmax(0,1fr))] gap-1">
+      <div className="flex min-h-0 w-full max-w-[360px] flex-1 flex-col rounded-2xl border border-[#2DD4BF]/20 bg-white/8 p-1.5 shadow-lg backdrop-blur-sm sm:p-2">
+        <div className="grid min-h-0 flex-1 grid-cols-10 auto-rows-[minmax(0,1fr)] gap-0.5 sm:gap-1">
           {renderBoard.flatMap((row, y) =>
             row.map((cell, x) => <div key={`${x}-${y}`} className={['rounded-[3px]', PIECE_COLOR_CLASS[cell]].join(' ')} />)
           )}
         </div>
       </div>
 
-      <div className="grid w-full max-w-[460px] grid-cols-4 gap-2">
+      <div className="grid w-full max-w-[460px] shrink-0 grid-cols-4 gap-1.5 sm:gap-2">
         <div className="rounded-xl border border-[#C084FC]/40 bg-gradient-to-br from-[#2a1f2e]/95 to-[#3d2a42]/90 px-3 py-2 text-center shadow-sm [box-shadow:inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-sm">
           <p className="text-xs tracking-wide text-[#E9D5FF]/90">COMBO</p>
           <p className="text-base font-bold text-[#F0ABFC] [text-shadow:0_1px_2px_rgba(0,0,0,0.35)] sm:text-xl">0</p>
@@ -298,12 +320,12 @@ export function BlunnoTetris(): ReactElement {
       <button
         type="button"
         onClick={reset}
-        className="rounded-full bg-[#BDB2FF] px-7 py-1.5 text-sm font-bold text-white transition hover:scale-105 hover:bg-[#a89cfa] sm:py-2"
+        className="shrink-0 rounded-full bg-[#BDB2FF] px-6 py-1 text-sm font-bold text-white transition hover:scale-105 hover:bg-[#a89cfa] sm:px-7 sm:py-1.5 sm:py-2"
       >
         {running ? 'RESTART' : 'START'}
       </button>
 
-      <div className="grid w-full max-w-xs grid-cols-4 gap-2 text-center">
+      <div className="grid w-full max-w-xs shrink-0 grid-cols-4 gap-1.5 text-center sm:gap-2">
         <button
           type="button"
           className="rounded-xl border border-[#2DD4BF]/50 bg-[#0F2A33] py-1 text-base font-semibold text-[#CCFFF5] transition hover:bg-[#153845] sm:py-2 sm:text-lg"
@@ -337,6 +359,15 @@ export function BlunnoTetris(): ReactElement {
           ↻
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={hardDrop}
+        className="w-full max-w-xs shrink-0 rounded-xl border border-[#F97316]/55 bg-gradient-to-br from-[#3f1f12]/95 to-[#5c2e18]/90 py-1.5 text-sm font-bold text-[#FFEDD5] shadow-sm transition hover:bg-[#5c2e18]/80 sm:py-2"
+        aria-label="Hard drop — instant fall"
+      >
+        DROP ⤓
+      </button>
     </div>
   );
 }
