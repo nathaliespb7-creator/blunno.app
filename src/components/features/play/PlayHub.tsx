@@ -130,18 +130,25 @@ export function PlayHub(): ReactElement {
                 className="flex flex-col items-center"
                 aria-label="Open fidget spinner game"
               >
-                <div className="flex h-[140px] w-[220px] items-center justify-center rounded-2xl border border-white/10 bg-[#0D0524]/80 p-4 backdrop-blur-sm sm:w-[250px]">
-                  <div
-                    className="relative flex h-[100px] w-[100px] items-center justify-center rounded-full border-2 border-white/20 shadow-[inset_0_2px_8px_rgba(0,0,0,0.35)] sm:h-[112px] sm:w-[112px]"
-                    style={{
-                      background:
-                        'radial-gradient(circle at 35% 30%, rgba(110,218,228,0.4) 0%, rgba(167,139,250,0.45) 45%, rgba(44,25,72,0.95) 100%)',
-                    }}
+                <div className="flex h-[140px] w-[220px] items-center justify-center rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm sm:w-[250px]">
+                  <svg
+                    viewBox="0 0 120 120"
+                    className="h-[100px] w-[100px] drop-shadow-[0_8px_20px_rgba(0,0,0,0.3)] sm:h-[108px] sm:w-[108px]"
                     aria-hidden
                   >
-                    <div className="h-[38%] w-[38%] rounded-full bg-gradient-to-br from-[#6EDAE4] to-[#A78BFA] opacity-95 shadow-md ring-1 ring-white/25" />
-                    <span className="pointer-events-none absolute -right-1 -top-1 h-3 w-8 rounded-full bg-gradient-to-r from-[#6EDAE4] to-[#A78BFA] opacity-90 shadow-sm" />
-                  </div>
+                    <defs>
+                      <linearGradient id="spinnerPreviewGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#5EEAD4" />
+                        <stop offset="50%" stopColor="#A78BFA" />
+                        <stop offset="100%" stopColor="#F0ABFC" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="60" cy="22" r="18" fill="url(#spinnerPreviewGrad)" opacity="0.92" />
+                    <circle cx="22" cy="88" r="18" fill="url(#spinnerPreviewGrad)" opacity="0.92" />
+                    <circle cx="98" cy="88" r="18" fill="url(#spinnerPreviewGrad)" opacity="0.92" />
+                    <circle cx="60" cy="60" r="22" fill="#1a1a2e" stroke="white" strokeOpacity="0.35" strokeWidth="2" />
+                    <circle cx="60" cy="60" r="10" fill="#00FFD1" opacity="0.95" />
+                  </svg>
                 </div>
               </button>
 
