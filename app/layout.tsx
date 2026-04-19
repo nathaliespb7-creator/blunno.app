@@ -3,6 +3,7 @@ import { Comfortaa, Inter, Poppins, Roboto, Sarabun, Tiro_Telugu } from 'next/fo
 import type { Metadata, Viewport } from 'next';
 
 import { AudioUnlock } from '@/components/shared/AudioUnlock';
+import { DevCacheReset } from '@/components/shared/DevCacheReset';
 import { Notification } from '@/components/ui';
 
 const comfortaa = Comfortaa({
@@ -88,6 +89,7 @@ export default function RootLayout({
     >
       <body className="min-h-dvh w-full max-w-[100vw] overflow-x-hidden font-sans text-blunno-foreground antialiased">
         <AudioUnlock />
+        <DevCacheReset />
         {children}
         <Notification />
       </body>
