@@ -52,6 +52,12 @@
   /* Planner time-slot cards */
   --gradient-slot: linear-gradient(131deg, #0b4f66 8%, #169fcc 87%);
 
+  /* Planner week strip — readable on dark (avoid “teal on teal”) */
+  --planner-day-bg: rgba(255, 255, 255, 0.05);
+  --planner-day-border: rgba(255, 255, 255, 0.2);
+  --planner-day-selected-bg: rgba(15, 23, 42, 0.75);
+  --planner-day-today-ring: rgba(251, 191, 36, 0.45);
+
   /* Glass / overlays — softer Modern Glass (less noise than heavy neon glass) */
   --glass-bg: var(--color-surface-1);
   --glass-border: rgba(255, 255, 255, 0.14);

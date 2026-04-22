@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { useRef, useState, type ReactElement } from 'react';
 
 import { playTaskCompleteInhale, unlockAudioSession } from '@/lib/navigationSound';
 import { cn } from '@/lib/utils';
@@ -64,23 +64,24 @@ function TodaySummaryCard({
   const isViewingToday = selectedKey === todayKey;
 
   return (
-    <section className="glass-card mb-1 w-full max-w-lg shrink-0 rounded-2xl px-3 py-2.5 text-left sm:mx-auto">
-      <p className="text-xs font-semibold uppercase tracking-wider text-white/55">Today&apos;s focus</p>
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-base font-bold tracking-tight text-white sm:text-lg">
-          {done} of {todayTasks.length} done
-        </p>
-        <p className="inline-flex items-center gap-1 text-sm font-semibold text-[#F5D9A6]">
-          <span aria-hidden>★</span>
-          <span>{stars}</span>
-        </p>
+    <section className="glass-card mb-1.5 w-full max-w-lg shrink-0 rounded-xl px-2.5 py-2 text-left sm:mx-auto sm:px-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">Today&apos;s focus</p>
+          <p className="mt-0.5 truncate text-sm font-bold text-white sm:text-base">
+            {done} of {todayTasks.length} done
+            <span className="ml-2 text-[#F5D9A6]" aria-label={`Stars: ${stars}`}>
+              <span aria-hidden>★</span> {stars}
+            </span>
+          </p>
+        </div>
         {!isViewingToday && (
           <button
             type="button"
             onClick={onJumpToToday}
-            className="blunno-btn-primary blunno-focus-visible shrink-0 py-1.5 text-xs sm:text-sm"
+            className="blunno-btn-primary blunno-focus-visible shrink-0 px-2.5 py-1 text-[11px] sm:text-xs"
           >
-            Jump to today
+            Today
           </button>
         )}
       </div>
@@ -90,7 +91,6 @@ function TodaySummaryCard({
 
 export default function PlannerPage(): ReactElement {
   const hasUnlockedAudioRef = useRef(false);
-  const [viewportHeight, setViewportHeight] = useState(900);
   const [selectedKey, setSelectedKey] = useState<string>(getTodayKey());
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [tasksMap, setTasksMap] = useState<TasksMap>(() => {
@@ -103,24 +103,8 @@ export default function PlannerPage(): ReactElement {
   const [showLimitHint, setShowLimitHint] = useState(false);
 
   const currentTasks = tasksMap[selectedKey] || [];
-  const completedCount = currentTasks.filter((task) => task.completed).length;
-
   const weekDays = getWeekDays(selectedKey, weekOffset);
-  const visibleTaskLimit = useMemo(() => {
-    if (viewportHeight < 670) return 4;
-    if (viewportHeight < 760) return 5;
-    if (viewportHeight < 860) return 6;
-    return 7;
-  }, [viewportHeight]);
-  const visibleTasks = currentTasks.slice(0, visibleTaskLimit);
-  const hiddenTaskCount = Math.max(0, currentTasks.length - visibleTaskLimit);
-
-  useEffect(() => {
-    const setCurrentHeight = () => setViewportHeight(window.innerHeight);
-    setCurrentHeight();
-    window.addEventListener('resize', setCurrentHeight);
-    return () => window.removeEventListener('resize', setCurrentHeight);
-  }, []);
+  const todayKey = getTodayKey();
 
   const goPrevWeek = () => {
     setWeekOffset(prev => prev - 1);
@@ -287,6 +271,7 @@ export default function PlannerPage(): ReactElement {
           {weekDays.map((date, idx) => {
             const dayKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
             const isSelected = dayKey === selectedKey;
+            const isToday = dayKey === todayKey;
             const isWeekend = idx === 5 || idx === 6; // sat, sun
             return (
               <button
@@ -296,29 +281,53 @@ export default function PlannerPage(): ReactElement {
                 className={cn(
                   'blunno-focus-visible flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl border py-1.5 transition-all',
                   isSelected &&
-                    'border-[var(--color-accent-primary)]/35 bg-[var(--color-surface-2)] shadow-[0_0_0_1px_rgba(94,234,212,0.12)]',
+                    'border-[var(--color-accent-primary)]/75 bg-[var(--planner-day-selected-bg)] shadow-[inset_0_0_0_1px_rgba(94,234,212,0.2)]',
                   !isSelected &&
+                    isToday &&
+                    'border-[var(--planner-day-today-ring)] bg-[var(--planner-day-bg)] shadow-[0_0_0_1px_rgba(251,191,36,0.25)]',
+                  !isSelected &&
+                    !isToday &&
                     isWeekend &&
-                    'border-[#B58A42]/35 bg-[rgba(74,58,35,0.86)] hover:border-[#D0A35A]/55',
-                  !isSelected && !isWeekend && 'border-white/8 bg-[var(--color-surface-1)] hover:border-white/14'
+                    'border-amber-500/30 bg-amber-950/45 hover:border-amber-400/45',
+                  !isSelected &&
+                    !isToday &&
+                    !isWeekend &&
+                    'border-[var(--planner-day-border)] bg-[var(--planner-day-bg)] hover:border-white/28 hover:bg-white/[0.08]'
                 )}
               >
-                <span className={cn('text-[10px] font-medium', isWeekend ? 'text-[#F5D9A6]/85' : 'text-white/55')}>
+                <span
+                  className={cn(
+                    'text-[10px] font-medium',
+                    isSelected && 'text-[var(--color-accent-primary)]',
+                    !isSelected && isWeekend && 'text-amber-100/80',
+                    !isSelected && !isWeekend && 'text-white/65'
+                  )}
+                >
                   {date.toLocaleString('en-US', { weekday: 'short' }).toUpperCase()}
                 </span>
-                <span className={cn('text-sm font-semibold', isWeekend ? 'text-[#F9E5C2]' : 'text-white/95')}>
+                <span
+                  className={cn(
+                    'text-sm font-semibold',
+                    isSelected && 'text-white',
+                    !isSelected && isWeekend && 'text-amber-50',
+                    !isSelected && !isWeekend && 'text-white/92'
+                  )}
+                >
                   {date.getDate()}
                 </span>
+                {isToday && !isSelected && (
+                  <span className="mt-0.5 h-1 w-1 rounded-full bg-amber-400/90" aria-hidden />
+                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Task list – fixed viewport, no vertical scroll */}
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <div className="space-y-1.5 pb-1">
-          {visibleTasks.map((task, idx) => (
+      {/* Task list — scroll; Add stays fixed below */}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch]">
+        <div className="space-y-1.5 pb-2">
+          {currentTasks.map((task, idx) => (
             <div
               key={task.id}
               className={cn(
@@ -470,24 +479,10 @@ export default function PlannerPage(): ReactElement {
                       )}
                     </span>
                   </label>
-                  <span
-                    className={cn(
-                      'ml-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm transition',
-                      task.completed ? 'bg-[#F5D9A6]/20 text-[#F5D9A6]' : 'bg-white/5 text-white/35'
-                    )}
-                    aria-label={task.completed ? 'Reward star earned' : 'No reward yet'}
-                  >
-                    ★
-                  </span>
                 </>
               )}
             </div>
           ))}
-          {hiddenTaskCount > 0 && (
-            <p className="pt-0.5 text-center text-xs text-white/45">
-              +{hiddenTaskCount} more tasks hidden on this screen size
-            </p>
-          )}
         </div>
       </div>
 
@@ -533,7 +528,6 @@ export default function PlannerPage(): ReactElement {
         {currentTasks.length >= MAX_TOTAL && !showLimitHint && (
           <p className="mt-2 text-xs text-white/50 text-center">Max {MAX_TOTAL} tasks per day</p>
         )}
-        <p className="mt-1 text-center text-[11px] text-[#F5D9A6]/70">Today reward: ★ {completedCount}</p>
       </div>
     </main>
   );

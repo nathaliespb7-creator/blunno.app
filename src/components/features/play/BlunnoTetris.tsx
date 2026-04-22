@@ -15,7 +15,8 @@ const BOARD_W = 10;
 const BOARD_H = 20;
 
 const PIECE_COLOR_CLASS: Record<number, string> = {
-  0: 'bg-[#0B132B]',
+  /* Empty: visible on dark play background (not same as bg-blunno-bg) */
+  0: 'bg-slate-900/40 ring-1 ring-inset ring-white/12',
   1: 'bg-[#2DD4BF]',
   2: 'bg-[#FB7185]',
   3: 'bg-[#F59E0B]',
@@ -139,6 +140,7 @@ export function BlunnoTetris(): ReactElement {
   const [board, setBoard] = useState<number[][]>(() => emptyBoard());
   const [piece, setPiece] = useState<Piece>(() => createPiece());
   const [running, setRunning] = useState(true);
+  const [paused, setPaused] = useState(false);
   const [score, setScore] = useState(0);
   const [lines, setLines] = useState(0);
   const [topScore, setTopScore] = useState(() => {
@@ -161,24 +163,30 @@ export function BlunnoTetris(): ReactElement {
     setPiece(createPiece());
     setScore(0);
     setLines(0);
+    setPaused(false);
     setRunning(true);
   }, []);
 
+  const togglePause = useCallback(() => {
+    if (!running) return;
+    setPaused((p) => !p);
+  }, [running]);
+
   const move = useCallback((dx: number) => {
     setPiece((prev) => {
-      if (!running || collides(board, prev, dx, 0)) return prev;
+      if (!running || paused || collides(board, prev, dx, 0)) return prev;
       return { ...prev, x: prev.x + dx };
     });
-  }, [board, running]);
+  }, [board, running, paused]);
 
   const rotate = useCallback(() => {
     setPiece((prev) => {
-      if (!running) return prev;
+      if (!running || paused) return prev;
       const rotated = rotateRight(prev.shape);
       if (collides(board, prev, 0, 0, rotated)) return prev;
       return { ...prev, shape: rotated };
     });
-  }, [board, running]);
+  }, [board, running, paused]);
 
   const lockPieceAndContinue = useCallback(
     (mergedBoard: number[][]) => {
@@ -192,8 +200,8 @@ export function BlunnoTetris(): ReactElement {
       const next = createPiece();
       if (collides(cleared, next)) {
         setBoard(cleared);
+        setPaused(false);
         setRunning(false);
-        void audioService.play('exhale');
         return;
       }
 
@@ -204,7 +212,7 @@ export function BlunnoTetris(): ReactElement {
   );
 
   const stepDown = useCallback(() => {
-    if (!running) return;
+    if (!running || paused) return;
 
     if (!collides(board, piece, 0, 1)) {
       setPiece((prev) => ({ ...prev, y: prev.y + 1 }));
@@ -213,10 +221,10 @@ export function BlunnoTetris(): ReactElement {
 
     const merged = lockPiece(board, piece);
     lockPieceAndContinue(merged);
-  }, [board, piece, running, lockPieceAndContinue]);
+  }, [board, piece, running, paused, lockPieceAndContinue]);
 
   const hardDrop = useCallback(() => {
-    if (!running) return;
+    if (!running || paused) return;
     let y = piece.y;
     while (!collides(board, { ...piece, y }, 0, 1)) {
       y += 1;
@@ -224,17 +232,22 @@ export function BlunnoTetris(): ReactElement {
     const landed = { ...piece, y };
     const merged = lockPiece(board, landed);
     lockPieceAndContinue(merged);
-  }, [board, piece, running, lockPieceAndContinue]);
+  }, [board, piece, running, paused, lockPieceAndContinue]);
 
   useEffect(() => {
-    if (!running) return;
+    if (!running || paused) return;
     const tick = Math.max(80, 520 - (level - 1) * 35);
     const id = window.setInterval(stepDown, tick);
     return () => window.clearInterval(id);
-  }, [running, level, stepDown]);
+  }, [running, paused, level, stepDown]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
       if (e.key === 'ArrowLeft') move(-1);
       if (e.key === 'ArrowRight') move(1);
       if (e.key === 'ArrowDown') stepDown();
@@ -246,7 +259,7 @@ export function BlunnoTetris(): ReactElement {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [move, rotate, stepDown, hardDrop]);
+  }, [move, rotate, stepDown, hardDrop, togglePause]);
 
   useEffect(() => {
     if (score <= topScore) return;
@@ -277,51 +290,72 @@ export function BlunnoTetris(): ReactElement {
       className="mx-auto flex h-full min-h-0 w-full max-w-[920px] flex-col items-center gap-1 overflow-hidden bg-blunno-bg p-1.5 text-[color:var(--color-text-primary)] [@media(min-height:700px)]:gap-2 [@media(min-height:700px)]:p-2 sm:p-3"
       onPointerDown={unlockAudioOnce}
     >
-      <div className="grid w-full max-w-[460px] shrink-0 grid-cols-2 gap-1.5 sm:gap-2">
-        <div className="glass-card rounded-xl p-2 text-center">
-          <p className="text-xs tracking-wide text-[color:var(--color-text-secondary)]">SCORE</p>
-          <p className="text-xl font-extrabold text-[var(--color-accent-primary)] sm:text-3xl">{score}</p>
+      <div className="grid w-full max-w-[360px] shrink-0 grid-cols-2 gap-1.5 sm:max-w-[420px] sm:gap-2">
+        <div className="glass-card rounded-lg px-2 py-1.5 text-center sm:py-2">
+          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">SCORE</p>
+          <p className="text-lg font-extrabold leading-tight text-[var(--color-accent-primary)] sm:text-2xl">{score}</p>
         </div>
-        <div className="glass-card rounded-xl p-2 text-center">
-          <p className="text-xs tracking-wide text-[color:var(--color-text-secondary)]">TOP</p>
-          <p className="text-xl font-extrabold text-white sm:text-3xl">{topScore}</p>
-        </div>
-      </div>
-
-      <div className="glass-card flex min-h-0 w-full max-w-[360px] flex-1 flex-col rounded-2xl p-1.5 sm:p-2">
-        <div className="grid min-h-0 flex-1 grid-cols-10 auto-rows-[minmax(0,1fr)] gap-0.5 sm:gap-1">
-          {renderBoard.flatMap((row, y) =>
-            row.map((cell, x) => <div key={`${x}-${y}`} className={['rounded-[3px]', PIECE_COLOR_CLASS[cell]].join(' ')} />)
-          )}
+        <div className="glass-card rounded-lg px-2 py-1.5 text-center sm:py-2">
+          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">TOP</p>
+          <p className="text-lg font-extrabold leading-tight text-white sm:text-2xl">{topScore}</p>
         </div>
       </div>
 
-      <div className="grid w-full max-w-[460px] shrink-0 grid-cols-4 gap-1.5 sm:gap-2">
-        <div className="glass-card rounded-xl px-2 py-2 text-center sm:px-3">
-          <p className="text-[10px] tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">COMBO</p>
-          <p className="text-sm font-bold text-white/90 sm:text-lg">0</p>
+      <div className="relative flex min-h-0 w-full max-w-[360px] flex-1 flex-col sm:max-w-[400px]">
+        <div className="glass-card flex min-h-0 w-full flex-1 flex-col rounded-2xl p-1.5 sm:p-2">
+          <div className="grid min-h-0 flex-1 grid-cols-10 auto-rows-[minmax(0,1fr)] gap-0.5 sm:gap-1">
+            {renderBoard.flatMap((row, y) =>
+              row.map((cell, x) => (
+                <div key={`${x}-${y}`} className={['rounded-[3px]', PIECE_COLOR_CLASS[cell]].join(' ')} />
+              ))
+            )}
+          </div>
         </div>
-        <div className="glass-card rounded-xl px-2 py-2 text-center sm:px-3">
-          <p className="text-[10px] tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LINES</p>
-          <p className="text-sm font-bold text-[var(--color-accent-primary)] sm:text-lg">{lines}</p>
+        {running && paused && (
+          <button
+            type="button"
+            onClick={togglePause}
+            className="absolute inset-0 z-10 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-white/10 bg-[var(--overlay-scrim)] px-4 backdrop-blur-[2px] touch-manipulation"
+            aria-label="Resume game"
+          >
+            <span className="text-sm font-extrabold uppercase tracking-wider text-white">Paused</span>
+            <span className="text-xs text-white/80">Tap to continue</span>
+          </button>
+        )}
+      </div>
+
+      <div className="grid w-full max-w-[360px] shrink-0 grid-cols-3 gap-1.5 sm:max-w-[420px] sm:gap-2">
+        <div className="glass-card rounded-lg px-1.5 py-1.5 text-center sm:px-2">
+          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LINES</p>
+          <p className="text-sm font-bold text-[var(--color-accent-primary)] sm:text-base">{lines}</p>
         </div>
-        <div className="glass-card rounded-xl px-2 py-2 text-center sm:px-3">
-          <p className="text-[10px] tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LEVEL</p>
-          <p className="text-sm font-bold text-white/90 sm:text-lg">{level}</p>
+        <div className="glass-card rounded-lg px-1.5 py-1.5 text-center sm:px-2">
+          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LEVEL</p>
+          <p className="text-sm font-bold text-white/90 sm:text-base">{level}</p>
         </div>
-        <div className="glass-card rounded-xl px-2 py-2 text-center sm:px-3">
-          <p className="text-[10px] tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">SPEED</p>
-          <p className="text-sm font-bold text-white/90 sm:text-lg">{speed}</p>
+        <div className="glass-card rounded-lg px-1.5 py-1.5 text-center sm:px-2">
+          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">SPEED</p>
+          <p className="text-sm font-bold text-white/90 sm:text-base">{speed}</p>
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={reset}
-        className="blunno-focus-visible glass-button shrink-0 rounded-2xl px-6 py-2 text-sm font-bold uppercase tracking-wide text-white sm:px-7 sm:py-2.5"
-      >
-        {running ? 'Restart' : 'Start'}
-      </button>
+      <div className="flex w-full max-w-xs shrink-0 items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={togglePause}
+          disabled={!running}
+          className="blunno-focus-visible glass-button min-h-[40px] flex-1 rounded-xl py-1.5 text-xs font-bold uppercase tracking-wide text-white/95 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-[44px] sm:py-2 sm:text-sm"
+        >
+          {paused ? 'Resume' : 'Pause'}
+        </button>
+        <button
+          type="button"
+          onClick={reset}
+          className="blunno-focus-visible glass-button min-h-[40px] flex-1 rounded-xl py-1.5 text-xs font-bold uppercase tracking-wide text-white sm:min-h-[44px] sm:py-2 sm:text-sm"
+        >
+          {running ? 'Restart' : 'Start'}
+        </button>
+      </div>
 
       <div className="grid w-full max-w-xs shrink-0 grid-cols-4 gap-1.5 text-center sm:gap-2">
         <button
