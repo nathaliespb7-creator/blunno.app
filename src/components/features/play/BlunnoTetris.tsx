@@ -287,119 +287,120 @@ export function BlunnoTetris(): ReactElement {
 
   return (
     <div
-      className="mx-auto flex h-full min-h-0 w-full max-w-[920px] flex-col items-center gap-1 overflow-hidden bg-blunno-bg p-1.5 text-[color:var(--color-text-primary)] [@media(min-height:700px)]:gap-2 [@media(min-height:700px)]:p-2 sm:p-3"
+      className="mx-auto flex h-full min-h-0 w-full max-w-[980px] flex-col overflow-hidden bg-blunno-bg p-1.5 text-[color:var(--color-text-primary)] [@media(min-height:700px)]:p-2 sm:p-3"
       onPointerDown={unlockAudioOnce}
     >
-      <div className="grid w-full max-w-[360px] shrink-0 grid-cols-2 gap-1.5 sm:max-w-[420px] sm:gap-2">
-        <div className="glass-card rounded-lg px-2 py-1.5 text-center sm:py-2">
-          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">SCORE</p>
-          <p className="text-lg font-extrabold leading-tight text-[var(--color-accent-primary)] sm:text-2xl">{score}</p>
-        </div>
-        <div className="glass-card rounded-lg px-2 py-1.5 text-center sm:py-2">
-          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">TOP</p>
-          <p className="text-lg font-extrabold leading-tight text-white sm:text-2xl">{topScore}</p>
-        </div>
-      </div>
-
-      <div className="relative flex min-h-0 w-full max-w-[360px] flex-1 flex-col sm:max-w-[400px]">
-        <div className="glass-card flex min-h-0 w-full flex-1 flex-col rounded-2xl p-1.5 sm:p-2">
-          <div className="grid min-h-0 flex-1 grid-cols-10 auto-rows-[minmax(0,1fr)] gap-0.5 sm:gap-1">
-            {renderBoard.flatMap((row, y) =>
-              row.map((cell, x) => (
-                <div key={`${x}-${y}`} className={['rounded-[3px]', PIECE_COLOR_CLASS[cell]].join(' ')} />
-              ))
-            )}
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-2 md:flex-row md:gap-3">
+        <div className="relative flex min-h-0 min-w-0 flex-1 justify-center">
+          <div className="glass-card flex min-h-0 w-full max-w-[400px] flex-1 flex-col rounded-2xl p-1.5 sm:p-2 md:max-w-none">
+            <div className="grid min-h-0 flex-1 grid-cols-10 auto-rows-[minmax(0,1fr)] gap-0.5 sm:gap-1">
+              {renderBoard.flatMap((row, y) =>
+                row.map((cell, x) => (
+                  <div key={`${x}-${y}`} className={['rounded-[3px]', PIECE_COLOR_CLASS[cell]].join(' ')} />
+                ))
+              )}
+            </div>
           </div>
+          {running && paused && (
+            <button
+              type="button"
+              onClick={togglePause}
+              className="absolute inset-0 z-10 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-white/10 bg-[var(--overlay-scrim)] px-4 backdrop-blur-[2px] touch-manipulation"
+              aria-label="Resume game"
+            >
+              <span className="text-sm font-extrabold uppercase tracking-wider text-white">Paused</span>
+              <span className="text-xs text-white/80">Tap to continue</span>
+            </button>
+          )}
         </div>
-        {running && paused && (
+
+        <aside className="flex w-full shrink-0 flex-col gap-2 md:w-[280px]">
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:grid-cols-1">
+            <div className="glass-card rounded-lg px-2 py-1.5 text-center sm:py-2">
+              <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">SCORE</p>
+              <p className="text-lg font-extrabold leading-tight text-[var(--color-accent-primary)] sm:text-2xl">{score}</p>
+            </div>
+            <div className="glass-card rounded-lg px-2 py-1.5 text-center sm:py-2">
+              <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">TOP</p>
+              <p className="text-lg font-extrabold leading-tight text-white sm:text-2xl">{topScore}</p>
+            </div>
+            <div className="glass-card rounded-lg px-2 py-1.5 text-center">
+              <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LINES</p>
+              <p className="text-sm font-bold text-[var(--color-accent-primary)] sm:text-base">{lines}</p>
+            </div>
+            <div className="glass-card rounded-lg px-2 py-1.5 text-center">
+              <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LEVEL</p>
+              <p className="text-sm font-bold text-white/90 sm:text-base">{level}</p>
+            </div>
+            <div className="glass-card rounded-lg px-2 py-1.5 text-center md:col-span-1">
+              <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">SPEED</p>
+              <p className="text-sm font-bold text-white/90 sm:text-base">{speed}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={togglePause}
+              disabled={!running}
+              className="blunno-focus-visible glass-button min-h-[40px] rounded-xl py-1.5 text-xs font-bold uppercase tracking-wide text-white/95 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-[44px] sm:py-2 sm:text-sm"
+            >
+              {paused ? 'Resume' : 'Pause'}
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="blunno-focus-visible glass-button min-h-[40px] rounded-xl py-1.5 text-xs font-bold uppercase tracking-wide text-white sm:min-h-[44px] sm:py-2 sm:text-sm"
+            >
+              {running ? 'Restart' : 'Start'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-4 gap-1.5 text-center sm:gap-2">
+            <button
+              type="button"
+              className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-white/95 active:scale-[0.98] sm:text-lg"
+              onClick={() => move(-1)}
+              aria-label="Move left"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-white/95 active:scale-[0.98] sm:text-lg"
+              onClick={stepDown}
+              aria-label="Move down"
+            >
+              ↓
+            </button>
+            <button
+              type="button"
+              className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-white/95 active:scale-[0.98] sm:text-lg"
+              onClick={() => move(1)}
+              aria-label="Move right"
+            >
+              →
+            </button>
+            <button
+              type="button"
+              className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-[var(--color-accent-secondary)] active:scale-[0.98] sm:text-lg"
+              onClick={rotate}
+              aria-label="Rotate piece"
+            >
+              ↻
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={togglePause}
-            className="absolute inset-0 z-10 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-white/10 bg-[var(--overlay-scrim)] px-4 backdrop-blur-[2px] touch-manipulation"
-            aria-label="Resume game"
+            onClick={hardDrop}
+            className="blunno-focus-visible glass-button w-full rounded-xl py-2.5 text-sm font-bold text-[var(--color-accent-primary)] sm:py-3"
+            aria-label="Hard drop — instant fall"
           >
-            <span className="text-sm font-extrabold uppercase tracking-wider text-white">Paused</span>
-            <span className="text-xs text-white/80">Tap to continue</span>
+            Drop
           </button>
-        )}
+        </aside>
       </div>
-
-      <div className="grid w-full max-w-[360px] shrink-0 grid-cols-3 gap-1.5 sm:max-w-[420px] sm:gap-2">
-        <div className="glass-card rounded-lg px-1.5 py-1.5 text-center sm:px-2">
-          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LINES</p>
-          <p className="text-sm font-bold text-[var(--color-accent-primary)] sm:text-base">{lines}</p>
-        </div>
-        <div className="glass-card rounded-lg px-1.5 py-1.5 text-center sm:px-2">
-          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">LEVEL</p>
-          <p className="text-sm font-bold text-white/90 sm:text-base">{level}</p>
-        </div>
-        <div className="glass-card rounded-lg px-1.5 py-1.5 text-center sm:px-2">
-          <p className="text-[10px] font-medium tracking-wide text-[color:var(--color-text-secondary)] sm:text-xs">SPEED</p>
-          <p className="text-sm font-bold text-white/90 sm:text-base">{speed}</p>
-        </div>
-      </div>
-
-      <div className="flex w-full max-w-xs shrink-0 items-center justify-center gap-2">
-        <button
-          type="button"
-          onClick={togglePause}
-          disabled={!running}
-          className="blunno-focus-visible glass-button min-h-[40px] flex-1 rounded-xl py-1.5 text-xs font-bold uppercase tracking-wide text-white/95 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-[44px] sm:py-2 sm:text-sm"
-        >
-          {paused ? 'Resume' : 'Pause'}
-        </button>
-        <button
-          type="button"
-          onClick={reset}
-          className="blunno-focus-visible glass-button min-h-[40px] flex-1 rounded-xl py-1.5 text-xs font-bold uppercase tracking-wide text-white sm:min-h-[44px] sm:py-2 sm:text-sm"
-        >
-          {running ? 'Restart' : 'Start'}
-        </button>
-      </div>
-
-      <div className="grid w-full max-w-xs shrink-0 grid-cols-4 gap-1.5 text-center sm:gap-2">
-        <button
-          type="button"
-          className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-white/95 active:scale-[0.98] sm:text-lg"
-          onClick={() => move(-1)}
-          aria-label="Move left"
-        >
-          ←
-        </button>
-        <button
-          type="button"
-          className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-white/95 active:scale-[0.98] sm:text-lg"
-          onClick={stepDown}
-          aria-label="Move down"
-        >
-          ↓
-        </button>
-        <button
-          type="button"
-          className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-white/95 active:scale-[0.98] sm:text-lg"
-          onClick={() => move(1)}
-          aria-label="Move right"
-        >
-          →
-        </button>
-        <button
-          type="button"
-          className="blunno-focus-visible glass-button min-h-[44px] py-2 text-base font-semibold text-[var(--color-accent-secondary)] active:scale-[0.98] sm:text-lg"
-          onClick={rotate}
-          aria-label="Rotate piece"
-        >
-          ↻
-        </button>
-      </div>
-
-      <button
-        type="button"
-        onClick={hardDrop}
-        className="blunno-focus-visible glass-button w-full max-w-xs shrink-0 rounded-xl py-2.5 text-sm font-bold text-[var(--color-accent-primary)] sm:py-3"
-        aria-label="Hard drop — instant fall"
-      >
-        Drop
-      </button>
     </div>
   );
 }

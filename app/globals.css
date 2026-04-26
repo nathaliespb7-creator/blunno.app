@@ -52,23 +52,34 @@
   /* Planner time-slot cards */
   --gradient-slot: linear-gradient(131deg, #0b4f66 8%, #169fcc 87%);
 
-  /* Planner week strip — readable on dark (avoid “teal on teal”) */
-  --planner-day-bg: rgba(255, 255, 255, 0.05);
-  --planner-day-border: rgba(255, 255, 255, 0.2);
-  --planner-day-selected-bg: rgba(15, 23, 42, 0.75);
-  --planner-day-today-ring: rgba(251, 191, 36, 0.45);
+  /* Planner week strip — warm tints on cool canvas; one accent (teal) for selection / today */
+  --planner-day-bg: rgba(90, 76, 66, 0.42);
+  --planner-day-border: rgba(245, 217, 166, 0.2);
+  --planner-day-hover-bg: rgba(102, 88, 76, 0.55);
+  --planner-day-selected-bg: rgba(36, 58, 56, 0.78);
+  /* “Today” when not selected: same family as focus ring, not separate amber */
+  --planner-day-today-ring: rgba(94, 234, 212, 0.42);
+  /* Week nav chips (prev/next) — no blur, solid on canvas */
+  --planner-week-nav-surface: rgba(90, 76, 66, 0.38);
+  --planner-week-nav-surface-hover: rgba(102, 88, 76, 0.52);
+  --planner-week-nav-border: rgba(245, 217, 166, 0.14);
 
-  /* Planner task list — warm / lilac chips vs cool #0b0b1a (avoid “blue on blue”) */
-  --planner-task-accent: #5eead4;
-  --planner-task-surface: rgba(52, 46, 64, 0.94);
-  --planner-task-surface-completed: rgba(36, 38, 48, 0.88);
-  --planner-task-border: rgba(245, 217, 166, 0.16);
-  --planner-task-border-completed: rgba(255, 255, 255, 0.09);
-  --planner-task-accent-completed: rgba(180, 165, 130, 0.55);
-  --planner-task-shadow: 0 4px 16px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --planner-task-input-fill: rgba(68, 60, 78, 0.75);
-  /* Bottom “Add a task” — same family, a step lighter */
-  --planner-input-surface: rgba(62, 56, 72, 0.96);
+  /* Today summary — warm panel on cold #0b0b1a */
+  --planner-summary-surface: rgba(100, 84, 72, 0.88);
+  --planner-summary-border: rgba(245, 217, 166, 0.22);
+  --planner-summary-shadow: 0 4px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --planner-star-foreground: #e8c88c;
+
+  /* Planner task list — one warm “material” family (higher L* vs old lilac-gray) */
+  --planner-task-surface: rgba(82, 70, 60, 0.96);
+  --planner-task-surface-completed: rgba(58, 50, 44, 0.95);
+  --planner-task-border: rgba(245, 217, 166, 0.22);
+  --planner-task-border-completed: rgba(245, 217, 166, 0.12);
+  /* Rim only — no side-stripe accent on cards */
+  --planner-task-shadow: 0 2px 14px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --planner-task-input-fill: rgba(72, 62, 54, 0.92);
+  /* Bottom “Add a task” */
+  --planner-input-surface: rgba(76, 64, 56, 0.96);
 
   /* Glass / overlays — softer Modern Glass (less noise than heavy neon glass) */
   --glass-bg: var(--color-surface-1);
@@ -221,6 +232,13 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+}
+
+/* Planner “Today’s focus” — solid warm layer (no full-screen glass) */
+.planner-summary-card {
+  background: var(--planner-summary-surface);
+  border: 1px solid var(--planner-summary-border);
+  box-shadow: var(--planner-summary-shadow);
 }
 
 .glass-panel {

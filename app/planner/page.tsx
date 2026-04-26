@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState, type ReactElement } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 
 import { playTaskCompleteInhale, unlockAudioSession } from '@/lib/navigationSound';
 import { cn } from '@/lib/utils';
@@ -64,13 +64,13 @@ function TodaySummaryCard({
   const isViewingToday = selectedKey === todayKey;
 
   return (
-    <section className="glass-card mb-1.5 w-full max-w-lg shrink-0 rounded-xl px-2.5 py-2 text-left sm:mx-auto sm:px-3">
+    <section className="planner-summary-card mb-1.5 w-full max-w-lg shrink-0 rounded-xl px-2.5 py-2 text-left sm:mx-auto sm:px-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">Today&apos;s focus</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/55">Today&apos;s focus</p>
           <p className="mt-0.5 truncate text-sm font-bold text-white sm:text-base">
             {done} of {todayTasks.length} done
-            <span className="ml-2 text-[#F5D9A6]" aria-label={`Stars: ${stars}`}>
+            <span className="ml-2 text-[var(--planner-star-foreground)]" aria-label={`Stars: ${stars}`}>
               <span aria-hidden>★</span> {stars}
             </span>
           </p>
@@ -105,6 +105,16 @@ export default function PlannerPage(): ReactElement {
   const currentTasks = tasksMap[selectedKey] || [];
   const weekDays = getWeekDays(selectedKey, weekOffset);
   const todayKey = getTodayKey();
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const visibleTaskLimit = useMemo(() => {
+    if (viewportHeight <= 680) return 4;
+    if (viewportHeight <= 760) return 5;
+    if (viewportHeight <= 860) return 6;
+    return 7;
+  }, [viewportHeight]);
+  const visibleTaskStart = Math.max(0, currentTasks.length - visibleTaskLimit);
+  const visibleTasks = currentTasks.slice(visibleTaskStart);
+  const hiddenTaskCount = Math.max(0, currentTasks.length - visibleTaskLimit);
 
   useEffect(() => {
     setTasksMap((prev) => {
@@ -115,6 +125,13 @@ export default function PlannerPage(): ReactElement {
       };
     });
   }, [selectedKey]);
+
+  useEffect(() => {
+    const syncHeight = () => setViewportHeight(window.innerHeight);
+    syncHeight();
+    window.addEventListener('resize', syncHeight);
+    return () => window.removeEventListener('resize', syncHeight);
+  }, []);
 
   const goPrevWeek = () => {
     setWeekOffset(prev => prev - 1);
@@ -231,7 +248,7 @@ export default function PlannerPage(): ReactElement {
       </div>
       <h1
         className={cn(
-          'w-full shrink-0 py-1.5 text-center font-sans text-lg font-extrabold uppercase leading-tight tracking-figma [text-shadow:var(--shadow-text-title)]',
+          'w-full shrink-0 pb-1 text-center font-sans text-lg font-extrabold uppercase leading-tight tracking-figma [text-shadow:var(--shadow-text-title)]',
           'sm:text-xl md:text-[22px]',
           '[@media(max-height:620px)]:py-1 [@media(max-height:620px)]:text-base'
         )}
@@ -239,6 +256,7 @@ export default function PlannerPage(): ReactElement {
         <span className="text-white">PLAN WITH </span>
         <span className="text-[var(--color-accent-primary)]">BLUNNO</span>
       </h1>
+      <div className="mb-2 h-px w-full shrink-0 bg-white/10" aria-hidden />
 
       {/* Today-first — primary block */}
       <TodaySummaryCard
@@ -251,7 +269,7 @@ export default function PlannerPage(): ReactElement {
       <div className="flex shrink-0 items-center justify-between pb-2 pt-1">
         <button
           onClick={goPrevWeek}
-          className="blunno-focus-visible flex h-11 w-11 items-center justify-center rounded-xl border border-white/12 bg-[var(--color-surface-1)] text-white/90 shadow-sm backdrop-blur-sm transition-colors hover:border-white/18 hover:bg-[var(--color-surface-2)]"
+          className="blunno-focus-visible flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--planner-week-nav-border)] bg-[var(--planner-week-nav-surface)] text-white/90 shadow-sm transition-colors hover:border-white/20 hover:bg-[var(--planner-week-nav-surface-hover)]"
           aria-label="Previous week"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -265,7 +283,7 @@ export default function PlannerPage(): ReactElement {
         
         <button
           onClick={goNextWeek}
-          className="blunno-focus-visible flex h-11 w-11 items-center justify-center rounded-xl border border-white/12 bg-[var(--color-surface-1)] text-white/90 shadow-sm backdrop-blur-sm transition-colors hover:border-white/18 hover:bg-[var(--color-surface-2)]"
+          className="blunno-focus-visible flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--planner-week-nav-border)] bg-[var(--planner-week-nav-surface)] text-white/90 shadow-sm transition-colors hover:border-white/20 hover:bg-[var(--planner-week-nav-surface-hover)]"
           aria-label="Next week"
         >
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -294,23 +312,19 @@ export default function PlannerPage(): ReactElement {
                     'border-[var(--color-accent-primary)]/75 bg-[var(--planner-day-selected-bg)] shadow-[inset_0_0_0_1px_rgba(94,234,212,0.2)]',
                   !isSelected &&
                     isToday &&
-                    'border-[var(--planner-day-today-ring)] bg-[var(--planner-day-bg)] shadow-[0_0_0_1px_rgba(251,191,36,0.25)]',
+                    'border-[var(--planner-day-today-ring)] bg-[var(--planner-day-bg)] shadow-[0_0_0_1px_rgba(94,234,212,0.22)]',
                   !isSelected &&
                     !isToday &&
-                    isWeekend &&
-                    'border-amber-500/30 bg-amber-950/45 hover:border-amber-400/45',
-                  !isSelected &&
-                    !isToday &&
-                    !isWeekend &&
-                    'border-[var(--planner-day-border)] bg-[var(--planner-day-bg)] hover:border-white/28 hover:bg-white/[0.08]'
+                    'border-[var(--planner-day-border)] bg-[var(--planner-day-bg)] hover:border-white/25 hover:bg-[var(--planner-day-hover-bg)]',
+                  !isSelected && !isToday && isWeekend && 'opacity-[0.98]'
                 )}
               >
                 <span
                   className={cn(
                     'text-[10px] font-medium',
                     isSelected && 'text-[var(--color-accent-primary)]',
-                    !isSelected && isWeekend && 'text-amber-100/80',
-                    !isSelected && !isWeekend && 'text-white/65'
+                    !isSelected && 'text-white/60',
+                    !isSelected && isWeekend && 'text-white/50'
                   )}
                 >
                   {date.toLocaleString('en-US', { weekday: 'short' }).toUpperCase()}
@@ -319,14 +333,13 @@ export default function PlannerPage(): ReactElement {
                   className={cn(
                     'text-sm font-semibold',
                     isSelected && 'text-white',
-                    !isSelected && isWeekend && 'text-amber-50',
-                    !isSelected && !isWeekend && 'text-white/92'
+                    !isSelected && 'text-white/92'
                   )}
                 >
                   {date.getDate()}
                 </span>
                 {isToday && !isSelected && (
-                  <span className="mt-0.5 h-1 w-1 rounded-full bg-amber-400/90" aria-hidden />
+                  <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[var(--color-accent-primary)] shadow-[0_0_0_1px_rgba(94,234,212,0.35)]" aria-hidden />
                 )}
               </button>
             );
@@ -334,21 +347,22 @@ export default function PlannerPage(): ReactElement {
         </div>
       </div>
 
-      {/* Task list — scroll; Add stays fixed below */}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch]">
+      {/* Task list — fixed viewport (no page scroll) */}
+      <div className="min-h-0 flex-1 overflow-hidden">
         <div className="space-y-1.5 pb-2">
-          {currentTasks.map((task, idx) => (
+          {visibleTasks.map((task, idx) => {
+            const actualIndex = visibleTaskStart + idx;
+            return (
             <div
               key={task.id}
               className={cn(
-                'flex min-w-0 items-center justify-between gap-2 rounded-2xl border py-2.5 pl-2.5 pr-3 shadow-[var(--planner-task-shadow)] transition',
-                'border-[var(--planner-task-border)] border-l-4 border-l-[var(--planner-task-accent)]',
-                'bg-[var(--planner-task-surface)] backdrop-blur-sm',
+                'flex min-w-0 items-center justify-between gap-2 rounded-2xl border border-[var(--planner-task-border)] py-2.5 pl-2.5 pr-3 shadow-[var(--planner-task-shadow)] transition',
+                'bg-[var(--planner-task-surface)]',
                 task.completed &&
-                  'border-[var(--planner-task-border-completed)] border-l-[var(--planner-task-accent-completed)] bg-[var(--planner-task-surface-completed)]'
+                  'border-[var(--planner-task-border-completed)] bg-[var(--planner-task-surface-completed)]'
               )}
             >
-              {editing && editing.day === selectedKey && editing.index === idx ? (
+              {editing && editing.day === selectedKey && editing.index === actualIndex ? (
                 <>
                   <input
                     type="text"
@@ -357,7 +371,7 @@ export default function PlannerPage(): ReactElement {
                     onBlur={saveEdit}
                     onKeyDown={onKeyDownEdit}
                     autoFocus
-                    className="min-w-0 flex-1 rounded-lg border border-white/12 bg-[var(--planner-task-input-fill)] px-2 py-1.5 text-base text-white outline-none touch-manipulation focus:border-[var(--color-accent-primary)]/50 focus:ring-1 focus:ring-[var(--color-focus-ring)]"
+                    className="min-w-0 flex-1 rounded-lg border border-[var(--planner-task-border)] bg-[var(--planner-task-input-fill)] px-2 py-1.5 text-base text-white outline-none touch-manipulation focus:border-[var(--color-accent-primary)]/50 focus:ring-1 focus:ring-[var(--color-focus-ring)]"
                     style={{
                       minHeight: '44px',
                       fontSize: '16px', // Prevents zoom on iOS
@@ -368,7 +382,7 @@ export default function PlannerPage(): ReactElement {
                     <input
                       type="checkbox"
                       checked={task.completed}
-                      onChange={() => toggleCompleted(idx)}
+                      onChange={() => toggleCompleted(actualIndex)}
                       className="peer sr-only"
                       aria-label={task.completed ? `Mark "${task.text}" as not done` : `Mark "${task.text}" as done`}
                     />
@@ -394,12 +408,12 @@ export default function PlannerPage(): ReactElement {
                     role="button"
                     tabIndex={0}
                     onClick={() => {
-                      startEdit(idx, task.text);
+                      startEdit(actualIndex, task.text);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        startEdit(idx, task.text);
+                        startEdit(actualIndex, task.text);
                       }
                     }}
                     className={`min-w-0 flex-1 cursor-text break-words text-sm touch-manipulation select-none sm:text-base ${task.completed ? 'text-white opacity-60 line-through' : 'text-white'}`}
@@ -418,7 +432,7 @@ export default function PlannerPage(): ReactElement {
                     type="button"
                     aria-label={`Edit task: ${task.text}`}
                     onClick={() => {
-                      startEdit(idx, task.text);
+                      startEdit(actualIndex, task.text);
                     }}
                     className="flex h-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl text-white/85 hover:text-white active:opacity-80 touch-manipulation"
                     style={{
@@ -446,7 +460,7 @@ export default function PlannerPage(): ReactElement {
                     <input
                       type="checkbox"
                       checked={task.completed}
-                      onChange={() => toggleCompleted(idx)}
+                      onChange={() => toggleCompleted(actualIndex)}
                       className="peer sr-only"
                       aria-label={task.completed ? `Mark "${task.text}" as not done` : `Mark "${task.text}" as done`}
                     />
@@ -468,7 +482,13 @@ export default function PlannerPage(): ReactElement {
                 </>
               )}
             </div>
-          ))}
+            );
+          })}
+          {hiddenTaskCount > 0 && (
+            <p className="pt-0.5 text-center text-[11px] text-white/45">
+              +{hiddenTaskCount} tasks hidden for this screen height
+            </p>
+          )}
         </div>
       </div>
 
